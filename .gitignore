@@ -1,0 +1,104 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.out
+
+# VM Images and Data
+images/*.img
+images/*.qcow2
+images/*.iso
+images/kernels/
+images/initrd/
+*.vmdk
+*.vdi
+
+# Cloud Hypervisor
+ch-remote
+cloud-hypervisor
+*.pid
+
+# VM Runtime
+vm_data/
+snapshots/
+*.sock
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Monitoring
+prometheus_data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Secrets and sensitive data
+secrets/
+*.pem
+*.key
+*.crt
+config/secrets.yaml
+
+# Build artifacts
+*.deb
+*.rpm
+*.tar.gz
+*.zip
+
+# Network configuration backups
+network_backup/
