@@ -1,0 +1,12 @@
+windows_default:
+  vcpus: 4
+  memory_mb: 2048
+  firmware: "images/windows/OVMF.fd"
+  disk: "images/windows/windows.qcow2"
+  cdrom: "images/windows/virtio-win.iso"
+  guest_agent:
+    enabled: true
+    port: 8080
+  network:
+    enabled: true
+    bridge: "chbr0"

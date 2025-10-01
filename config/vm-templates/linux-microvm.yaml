@@ -1,0 +1,47 @@
+linux_microvm:
+  vcpus: 1
+  memory_mb: 256
+  kernel: "images/linux/microvm-kernel"
+  rootfs: "images/linux/microvm-rootfs.ext4"
+  boot_args: "console=ttyS0 reboot=k panic=1 pci=off root=/dev/vda rw init=/sbin/init"
+  guest_agent:
+    enabled: true
+    port: 8080
+  network:
+    enabled: true
+    bridge: "chbr0"
+  devices:
+    serial:
+      enabled: true
+      file: null
+    block:
+      - path: "images/linux/microvm-rootfs.ext4"
+        read_only: false
+        direct: true
+        rate_limiter:
+          bandwidth:
+            size: 1000000
+            refill_time: 100
+          ops:
+            size: 1000
+            refill_time: 100
+  security:
+    seccomp: true
+    readonly_rootfs: false
+    sandbox: true
+  performance:
+    hugepages: false
+    cpu_features: "host"
+    cpu_topology:
+      threads_per_core: 1
+      cores_per_die: 1
+      dies_per_socket: 1
+      sockets: 1
+  monitoring:
+    metrics: true
+    telemetry: true
+  boot_timer:
+    target_time_ms: 500
+  resource_limits:
+    max_memory_mb: 512
+    max_vcpus: 2

@@ -57,7 +57,18 @@ flake8 src/ && black src/ && mypy src/
    - Update config examples for new parameters
    - Update README.md if setup/usage changes
 
-3. **Change tracking format**:
+3. **Unit testing requirement**:
+   - All changes MUST pass unit tests before implementation is considered complete
+   - Run `pytest tests/unit/` to verify all unit tests pass
+   - If unit tests fail and issues cannot be fixed, changes must be rolled back
+   - New functionality requires corresponding unit tests
+   - **NEVER use static mock data in production code for testing purposes**
+     - Mock data should only exist in test files (tests/ directory)
+     - Production code must not contain hardcoded test responses or fake data
+     - Use proper mocking frameworks (unittest.mock, pytest-mock) in tests only
+     - All API responses must come from real business logic, not embedded test data
+
+4. **Change tracking format**:
    ```
    ## [YYYY-MM-DD] - Change Type
    ### Changed/Added/Fixed/Removed

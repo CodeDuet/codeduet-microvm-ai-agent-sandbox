@@ -1,0 +1,29 @@
+server:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+
+cloud_hypervisor:
+  binary_path: "/usr/local/bin/cloud-hypervisor"
+  api_socket_dir: "/tmp/ch-sockets"
+
+networking:
+  bridge_name: "chbr0"
+  subnet: "192.168.200.0/24"
+  port_range_start: 10000
+  port_range_end: 20000
+
+resources:
+  max_vms: 50
+  max_memory_per_vm: 8192
+  max_vcpus_per_vm: 8
+
+security:
+  enable_authentication: true
+  api_key_required: true
+  vm_isolation: true
+
+monitoring:
+  prometheus_port: 9090
+  metrics_enabled: true
+  log_level: "INFO"

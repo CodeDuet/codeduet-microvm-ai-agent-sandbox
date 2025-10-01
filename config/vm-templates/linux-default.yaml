@@ -1,0 +1,29 @@
+linux_default:
+  vcpus: 2
+  memory_mb: 512
+  kernel: "images/linux/vmlinux.bin"
+  rootfs: "images/linux/rootfs.ext4"
+  boot_args: "console=ttyS0 reboot=k panic=1 pci=off root=/dev/vda rw"
+  guest_agent:
+    enabled: true
+    port: 8080
+  network:
+    enabled: true
+    bridge: "chbr0"
+  devices:
+    serial:
+      enabled: true
+      file: null
+    block:
+      - path: "images/linux/rootfs.ext4"
+        read_only: false
+        direct: false
+  security:
+    seccomp: true
+    readonly_rootfs: false
+  performance:
+    hugepages: false
+    cpu_features: "host"
+  monitoring:
+    metrics: true
+    telemetry: true

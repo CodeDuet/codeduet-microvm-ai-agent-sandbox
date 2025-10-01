@@ -1,0 +1,10 @@
+networking:
+  bridge_name: "chbr0"
+  subnet: "192.168.200.0/24"
+  gateway: "192.168.200.1"
+  dns_servers:
+    - "8.8.8.8"
+    - "8.8.4.4"
+  port_range:
+    start: 10000
+    end: 20000
