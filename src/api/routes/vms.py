@@ -19,6 +19,32 @@ async def create_vm(vm_request: VMCreateRequest) -> VMResponse:
         )
 
 
+@router.post("/linux", response_model=VMResponse, status_code=status.HTTP_201_CREATED)
+async def create_linux_vm(vm_request: VMCreateRequest) -> VMResponse:
+    """Create a Linux MicroVM with optimized kernel boot."""
+    try:
+        vm_info = await vm_manager.create_linux_vm(vm_request)
+        return VMResponse(**vm_info.model_dump())
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create Linux VM: {str(e)}"
+        )
+
+
+@router.post("/windows", response_model=VMResponse, status_code=status.HTTP_201_CREATED)
+async def create_windows_vm(vm_request: VMCreateRequest) -> VMResponse:
+    """Create a Windows MicroVM with UEFI boot and VirtIO drivers."""
+    try:
+        vm_info = await vm_manager.create_windows_vm(vm_request)
+        return VMResponse(**vm_info.model_dump())
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create Windows VM: {str(e)}"
+        )
+
+
 @router.get("/", response_model=VMListResponse)
 async def list_vms() -> VMListResponse:
     try:

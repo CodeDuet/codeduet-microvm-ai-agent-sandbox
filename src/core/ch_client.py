@@ -43,11 +43,14 @@ class CloudHypervisorClient:
         if "boot_args" in vm_config:
             cmd.extend(["--cmdline", vm_config["boot_args"]])
         
-        # Add firmware for Windows VMs
+        # Add firmware for Windows VMs (UEFI support)
         if "firmware" in vm_config:
             cmd.extend(["--firmware", vm_config["firmware"]])
         if "disk" in vm_config:
-            cmd.extend(["--disk", f"path={vm_config['disk']}"])
+            disk_params = f"path={vm_config['disk']}"
+            if vm_config.get("disk_format"):
+                disk_params += f",format={vm_config['disk_format']}"
+            cmd.extend(["--disk", disk_params])
         if "cdrom" in vm_config:
             cmd.extend(["--disk", f"path={vm_config['cdrom']},readonly=on"])
 
@@ -244,11 +247,36 @@ class CloudHypervisorClient:
         elif "rootfs" in vm_config:
             disks.append({"path": vm_config["rootfs"]})
         
+        # Windows main disk (UEFI bootable)
         if "disk" in vm_config:
-            disks.append({"path": vm_config["disk"]})
+            disk_config = {"path": vm_config["disk"]}
+            if vm_config.get("disk_format"):
+                disk_config["format"] = vm_config["disk_format"]
+            # Enable VirtIO for Windows with proper driver support
+            if "firmware" in vm_config:  # Windows VM with UEFI
+                disk_config["vhost_user"] = False
+                disk_config["poll_queue"] = True
+            disks.append(disk_config)
+        
+        # Windows VirtIO drivers CD-ROM
+        if "cdrom" in vm_config:
+            disks.append({
+                "path": vm_config["cdrom"],
+                "readonly": True
+            })
         
         if disks:
             config["disks"] = disks
+        
+        # Add firmware configuration for Windows (UEFI)
+        if "firmware" in vm_config:
+            config["firmware"] = vm_config["firmware"]
+        
+        # Add boot configuration
+        if "kernel" in vm_config:
+            config["kernel"] = {"path": vm_config["kernel"]}
+            if "boot_args" in vm_config:
+                config["kernel"]["cmdline"] = vm_config["boot_args"]
         
         # Add network configuration
         if vm_config.get("network", {}).get("enabled", False):

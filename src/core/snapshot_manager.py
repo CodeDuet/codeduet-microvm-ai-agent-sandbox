@@ -1,7 +1,9 @@
-from typing import List, Dict, Any
-from datetime import datetime
+from typing import List, Dict, Any, Optional
+from datetime import datetime, timedelta
 from pathlib import Path
 import shutil
+import hashlib
+import os
 
 from src.api.models.vm import SnapshotInfo
 from src.core.ch_client import CloudHypervisorClient
@@ -16,7 +18,7 @@ class SnapshotManager:
         self.snapshots_dir = Path("data/snapshots")
         self.snapshots_dir.mkdir(parents=True, exist_ok=True)
 
-    async def create_snapshot(self, vm_name: str, snapshot_name: str) -> SnapshotInfo:
+    async def create_snapshot(self, vm_name: str, snapshot_name: str, description: str = "") -> SnapshotInfo:
         logger.info(f"Creating snapshot '{snapshot_name}' for VM '{vm_name}'")
         
         snapshot_dir = self.snapshots_dir / vm_name / snapshot_name
@@ -24,17 +26,23 @@ class SnapshotManager:
         
         snapshot_path = snapshot_dir / "snapshot.bin"
         
-        # TODO: Create snapshot via Cloud Hypervisor
-        # ch_client = CloudHypervisorClient(vm_name)
-        # await ch_client.snapshot_vm(str(snapshot_path))
-        
-        # For now, create a dummy snapshot file
-        snapshot_path.write_bytes(b"dummy snapshot data")
+        # Create snapshot via Cloud Hypervisor API
+        ch_client = CloudHypervisorClient(vm_name)
+        try:
+            await ch_client.snapshot_vm(str(snapshot_path))
+            logger.info(f"Snapshot data created at '{snapshot_path}'")
+        except Exception as e:
+            logger.error(f"Failed to create snapshot via Cloud Hypervisor: {e}")
+            # Clean up on failure
+            if snapshot_dir.exists():
+                import shutil
+                shutil.rmtree(snapshot_dir)
+            raise
         
         snapshot_info = SnapshotInfo(
             name=snapshot_name,
             vm_name=vm_name,
-            description="",
+            description=description,
             created_at=datetime.now(),
             size_bytes=snapshot_path.stat().st_size if snapshot_path.exists() else 0
         )
@@ -43,7 +51,7 @@ class SnapshotManager:
         metadata_file = snapshot_dir / "metadata.json"
         await write_json_async(metadata_file, snapshot_info.model_dump())
         
-        logger.info(f"Snapshot '{snapshot_name}' created for VM '{vm_name}'")
+        logger.info(f"Snapshot '{snapshot_name}' created for VM '{vm_name}' (size: {snapshot_info.size_bytes} bytes)")
         return snapshot_info
 
     async def list_snapshots(self, vm_name: str) -> List[SnapshotInfo]:
@@ -72,11 +80,14 @@ class SnapshotManager:
         if not snapshot_path.exists():
             raise ValueError(f"Snapshot data not found: {snapshot_path}")
         
-        # TODO: Restore VM via Cloud Hypervisor
-        # ch_client = CloudHypervisorClient(vm_name)
-        # await ch_client.restore_vm(str(snapshot_path))
-        
-        logger.info(f"VM '{vm_name}' restored from snapshot '{snapshot_name}'")
+        # Restore VM via Cloud Hypervisor API
+        ch_client = CloudHypervisorClient(vm_name)
+        try:
+            await ch_client.restore_vm(str(snapshot_path))
+            logger.info(f"VM '{vm_name}' restored from snapshot '{snapshot_name}'")
+        except Exception as e:
+            logger.error(f"Failed to restore VM from snapshot: {e}")
+            raise
 
     async def delete_snapshot(self, vm_name: str, snapshot_name: str) -> None:
         logger.info(f"Deleting snapshot '{snapshot_name}' for VM '{vm_name}'")

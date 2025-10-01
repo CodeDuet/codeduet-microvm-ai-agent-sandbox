@@ -3,10 +3,72 @@ windows_default:
   memory_mb: 2048
   firmware: "images/windows/OVMF.fd"
   disk: "images/windows/windows.qcow2"
+  disk_format: "qcow2"
   cdrom: "images/windows/virtio-win.iso"
-  guest_agent:
-    enabled: true
-    port: 8080
+  
+  # Windows-specific boot configuration
+  boot:
+    order: ["disk", "cdrom"]
+    secure_boot: false
+  
+  # Enhanced device configuration for Windows
+  devices:
+    # VirtIO block devices for better performance
+    block:
+      - path: "images/windows/windows.qcow2"
+        format: "qcow2"
+        interface: "virtio"
+        cache: "none"
+        direct: true
+      - path: "images/windows/virtio-win.iso"
+        format: "raw"
+        interface: "ide"
+        read_only: true
+    
+    # VirtIO network interface
+    network:
+      interface: "virtio-net"
+      multiqueue: true
+      packed: true
+    
+    # Enhanced serial console for Windows
+    serial:
+      enabled: true
+      mode: "pty"
+    
+    # RNG device for Windows
+    rng:
+      enabled: true
+      source: "/dev/urandom"
+  
+  # Performance optimizations for Windows
+  performance:
+    cpu_topology:
+      threads_per_core: 1
+      cores_per_die: 4
+      dies_per_socket: 1
+      sockets: 1
+    hugepages: false
+    balloon: false
+  
+  # Security settings
+  security:
+    seccomp: false  # Windows doesn't support seccomp
+    iommu: false
+  
+  # Network configuration
   network:
     enabled: true
     bridge: "chbr0"
+    mac: "52:54:00:12:34:57"  # Static MAC for Windows licensing
+  
+  # Guest agent configuration
+  guest_agent:
+    enabled: true
+    port: 8080
+    transport: "virtio-serial"
+  
+  # Resource limits
+  resource_limits:
+    max_vcpus: 8
+    max_memory_mb: 8192
