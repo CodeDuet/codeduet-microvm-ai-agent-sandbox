@@ -6,7 +6,7 @@ from typing import Dict, Any
 
 from src.utils.logging import setup_logging
 from src.utils.config import get_settings
-from src.api.routes import vms, system, snapshots, network, guest
+from src.api.routes import vms, system, snapshots, network, guest, resources
 from src.api.middleware.logging import LoggingMiddleware
 
 
@@ -42,6 +42,7 @@ app.include_router(system.router, prefix="/api/v1/system", tags=["System"])
 app.include_router(snapshots.router, prefix="/api/v1/snapshots", tags=["Snapshots"])
 app.include_router(network.router, prefix="/api/v1/network", tags=["Network"])
 app.include_router(guest.router, prefix="/api/v1", tags=["Guest"])
+app.include_router(resources.router, tags=["Resources"])
 
 
 @app.get("/")

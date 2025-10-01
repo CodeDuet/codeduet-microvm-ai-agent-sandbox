@@ -14,9 +14,52 @@ networking:
   port_range_end: 20000
 
 resources:
+  # System-wide limits
   max_vms: 50
   max_memory_per_vm: 8192
   max_vcpus_per_vm: 8
+  max_disk_per_vm: 100
+  
+  # Resource management settings
+  optimization:
+    enabled: true
+    cpu_underutilization_threshold: 10.0     # % CPU usage considered underutilized
+    memory_underutilization_threshold: 20.0  # % Memory usage considered underutilized
+    cpu_overutilization_threshold: 90.0      # % CPU usage considered overutilized
+    memory_overutilization_threshold: 85.0   # % Memory usage considered overutilized
+    resource_pressure_threshold: 80.0        # % system resource usage for pressure detection
+    recommendation_interval: 300             # seconds between recommendation updates
+    
+  scaling:
+    enabled: true
+    auto_scale_critical: true                 # Auto-scale VMs with critical recommendations
+    auto_scale_high: false                    # Auto-scale VMs with high priority recommendations
+    scale_up_factor: 1.2                     # Factor to increase resources by
+    scale_down_factor: 0.8                   # Factor to decrease resources by
+    min_vcpus: 1                             # Minimum vCPUs per VM
+    min_memory_mb: 512                       # Minimum memory per VM
+    
+  monitoring:
+    enabled: true
+    usage_history_size: 1000                 # Number of usage records to keep
+    update_interval: 60                      # seconds between usage updates
+    
+  quotas:
+    # Default quota for users without specific quotas
+    default:
+      max_vcpus: 4
+      max_memory_mb: 2048
+      max_disk_gb: 20
+      max_vms: 5
+      priority: 1
+      
+    # Premium quota example
+    premium:
+      max_vcpus: 8
+      max_memory_mb: 8192
+      max_disk_gb: 100
+      max_vms: 20
+      priority: 5
 
 security:
   enable_authentication: true
