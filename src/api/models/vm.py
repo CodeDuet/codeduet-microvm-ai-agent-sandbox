@@ -255,3 +255,11 @@ class AutoScaleResponse(BaseModel):
     scaled_vms: List[str]
     total_scaled: int
     timestamp: datetime
+
+
+class ErrorResponse(BaseModel):
+    """Error response model."""
+    error: str = Field(..., description="Error message")
+    detail: Optional[str] = Field(None, description="Error details")
+    code: Optional[str] = Field(None, description="Error code")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")

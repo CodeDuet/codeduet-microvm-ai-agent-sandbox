@@ -62,9 +62,133 @@ resources:
       priority: 5
 
 security:
-  enable_authentication: true
-  api_key_required: true
-  vm_isolation: true
+  # Authentication and Authorization
+  authentication:
+    enabled: true
+    jwt_secret: "your-secret-key-change-in-production"
+    jwt_algorithm: "HS256"
+    token_expire_minutes: 60
+    max_failed_attempts: 5
+    lockout_duration_minutes: 30
+    require_strong_passwords: true
+    session_timeout_minutes: 60
+    enable_mfa: false
+  
+  # API Security
+  api:
+    require_api_key: true
+    enable_rate_limiting: true
+    rate_limit_requests_per_minute: 100
+    max_request_size_mb: 10
+    enable_cors: false
+    allowed_origins: []
+    require_https: false  # Set to true in production
+  
+  # VM Isolation and Firewall
+  isolation:
+    enabled: true
+    default_isolation_level: "moderate"  # strict, moderate, minimal
+    enable_vm_to_vm_communication: false
+    enable_namespace_isolation: true
+    enable_cgroup_isolation: true
+    seccomp_enabled: true
+    
+    firewall:
+      enabled: true
+      bridge_name: "chbr0"
+      vm_network: "192.168.200.0/24"
+      host_ip: "192.168.200.1"
+      default_drop_policy: true
+      allow_ssh_from_management: true
+      management_networks:
+        - "10.0.0.0/8"
+        - "172.16.0.0/12"
+        - "192.168.0.0/16"
+  
+  # Security Policies
+  policies:
+    max_concurrent_vms: 50
+    max_vm_memory_mb: 8192
+    max_vm_vcpus: 8
+    require_authentication: true
+    session_timeout_minutes: 60
+    enable_rate_limiting: true
+    blocked_commands:
+      - "rm -rf"
+      - "format"
+      - "del /q"
+      - "shutdown"
+      - "reboot"
+      - "halt"
+      - "mkfs"
+      - "fdisk"
+      - "dd if="
+    allowed_networks:
+      - "192.168.200.0/24"
+      - "10.0.0.0/8"
+  
+  # Input Validation
+  validation:
+    enable_strict_validation: true
+    max_vm_name_length: 32
+    max_snapshot_name_length: 64
+    max_user_id_length: 256
+    max_command_length: 1024
+    allow_absolute_paths: false
+    sanitize_commands: true
+  
+  # Credential Management
+  credentials:
+    encryption_enabled: true
+    password_hash_rounds: 100000
+    api_key_length: 32
+    session_token_length: 32
+    rotate_keys_days: 90
+  
+  # Vulnerability Scanning
+  scanning:
+    enabled: true
+    scan_interval_hours: 24
+    scan_on_vm_creation: true
+    auto_remediate_critical: false
+    scan_timeout_minutes: 30
+    vulnerability_db_update_hours: 6
+
+# Audit Logging and Compliance
+audit:
+  enabled: true
+  log_file: "/var/log/microvm/audit.log"
+  retention_days: 2555  # 7 years for compliance
+  enable_encryption: true
+  buffer_size: 100
+  flush_interval_seconds: 30
+  debug: false
+  
+  # Compliance Frameworks
+  compliance_frameworks:
+    - "soc2"
+    - "iso27001"
+    # - "hipaa"    # Uncomment if HIPAA compliance needed
+    # - "pci_dss"  # Uncomment if PCI DSS compliance needed
+    # - "gdpr"     # Uncomment if GDPR compliance needed
+  
+  # Event Configuration
+  events:
+    log_authentication: true
+    log_authorization: true
+    log_vm_operations: true
+    log_resource_access: true
+    log_security_violations: true
+    log_configuration_changes: true
+    log_system_events: true
+    log_command_execution: true
+  
+  # Alerting
+  alerting:
+    enabled: true
+    security_violations_immediate: true
+    failed_auth_threshold: 3
+    suspicious_activity_patterns: true
 
 monitoring:
   prometheus_port: 9090

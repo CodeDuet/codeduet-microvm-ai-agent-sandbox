@@ -1,0 +1,332 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: microvm-data-pvc
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: microvm-snapshots-pvc
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microvm-api
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: api
+    app.kubernetes.io/instance: microvm-api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: microvm-sandbox
+      app.kubernetes.io/component: api
+      app.kubernetes.io/instance: microvm-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: microvm-sandbox
+        app.kubernetes.io/component: api
+        app.kubernetes.io/instance: microvm-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/api/v1/health/metrics"
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: microvm-api
+      containers:
+        - name: microvm-api
+          image: microvm-sandbox:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: MICROVM_CONFIG_PATH
+              value: "/app/config/config.yaml"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: microvm-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: microvm-secrets
+                  key: REDIS_URL
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: microvm-secrets
+                  key: JWT_SECRET_KEY
+            - name: API_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: microvm-secrets
+                  key: API_SECRET_KEY
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+            - name: data-storage
+              mountPath: /app/data
+            - name: snapshots-storage
+              mountPath: /app/snapshots
+            - name: logs-storage
+              mountPath: /app/logs
+            - name: dev-kvm
+              mountPath: /dev/kvm
+            - name: sys-fs-cgroup
+              mountPath: /sys/fs/cgroup
+              readOnly: true
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_ADMIN
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+              hugepages-2Mi: "1Gi"
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+              hugepages-2Mi: "512Mi"
+      volumes:
+        - name: config
+          configMap:
+            name: microvm-config
+        - name: data-storage
+          persistentVolumeClaim:
+            claimName: microvm-data-pvc
+        - name: snapshots-storage
+          persistentVolumeClaim:
+            claimName: microvm-snapshots-pvc
+        - name: logs-storage
+          emptyDir: {}
+        - name: dev-kvm
+          hostPath:
+            path: /dev/kvm
+            type: CharDevice
+        - name: sys-fs-cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+            type: Directory
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 300
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 300
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: microvm-sandbox
+                    app.kubernetes.io/component: api
+                topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microvm-worker
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/instance: microvm-worker
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: microvm-sandbox
+      app.kubernetes.io/component: worker
+      app.kubernetes.io/instance: microvm-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: microvm-sandbox
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/instance: microvm-worker
+      annotations:
+        prometheus.io/scrape: "false"
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      serviceAccountName: microvm-api
+      containers:
+        - name: microvm-worker
+          image: microvm-sandbox:latest
+          imagePullPolicy: IfNotPresent
+          command: ["./entrypoint.sh", "worker"]
+          env:
+            - name: MICROVM_CONFIG_PATH
+              value: "/app/config/config.yaml"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: microvm-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: microvm-secrets
+                  key: REDIS_URL
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: microvm-secrets
+                  key: JWT_SECRET_KEY
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+            - name: data-storage
+              mountPath: /app/data
+            - name: snapshots-storage
+              mountPath: /app/snapshots
+            - name: logs-storage
+              mountPath: /app/logs
+            - name: dev-kvm
+              mountPath: /dev/kvm
+            - name: sys-fs-cgroup
+              mountPath: /sys/fs/cgroup
+              readOnly: true
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_ADMIN
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+      volumes:
+        - name: config
+          configMap:
+            name: microvm-config
+        - name: data-storage
+          persistentVolumeClaim:
+            claimName: microvm-data-pvc
+        - name: snapshots-storage
+          persistentVolumeClaim:
+            claimName: microvm-snapshots-pvc
+        - name: logs-storage
+          emptyDir: {}
+        - name: dev-kvm
+          hostPath:
+            path: /dev/kvm
+            type: CharDevice
+        - name: sys-fs-cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+            type: Directory
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: microvm-sandbox
+                    app.kubernetes.io/component: worker
+                topologyKey: kubernetes.io/hostname

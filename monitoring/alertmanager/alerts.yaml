@@ -1,0 +1,272 @@
+global:
+  # Global configuration
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'microvm-alerts@company.com'
+  smtp_auth_username: 'alerts'
+  smtp_auth_password: 'password'
+  smtp_require_tls: true
+
+# Inhibition rules allow to mute a set of alerts given that another alert is firing
+inhibit_rules:
+  # Critical alerts inhibit warning alerts for the same component
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ['component']
+
+  # System-wide critical alerts inhibit component-specific warnings
+  - source_matchers:
+      - severity="critical"
+      - component="system"
+    target_matchers:
+      - severity="warning"
+
+route:
+  # Default route configuration
+  group_by: ['alertname', 'component']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: 'default'
+  
+  routes:
+    # Critical alerts route
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 1h
+      
+    # Security alerts route
+    - match:
+        component: security
+      receiver: 'security-team'
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 30m
+      
+    # System alerts route
+    - match:
+        component: system
+      receiver: 'infrastructure-team'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      
+    # API alerts route
+    - match:
+        component: api
+      receiver: 'api-team'
+      group_wait: 1m
+      group_interval: 5m
+      repeat_interval: 6h
+      
+    # VM-specific alerts
+    - match:
+        component: vm
+      receiver: 'vm-operations'
+      group_wait: 2m
+      group_interval: 10m
+      repeat_interval: 8h
+
+    # Monitoring system alerts
+    - match:
+        component: monitoring
+      receiver: 'monitoring-team'
+      group_wait: 5m
+      group_interval: 10m
+      repeat_interval: 24h
+
+receivers:
+  # Default receiver for non-critical alerts
+  - name: 'default'
+    email_configs:
+      - to: 'ops-team@company.com'
+        subject: '[MicroVM Alert] {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Component: {{ .Labels.component }}
+          Starts At: {{ .StartsAt }}
+          {{ end }}
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#microvm-alerts'
+        title: 'MicroVM Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          *Component:* {{ .Labels.component }}
+          {{ end }}
+
+  # Critical alerts receiver
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'oncall@company.com'
+        subject: '[CRITICAL] MicroVM Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          🚨 CRITICAL ALERT 🚨
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Component: {{ .Labels.component }}
+          Starts At: {{ .StartsAt }}
+          
+          Immediate action required!
+          {{ end }}
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#microvm-critical'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Component:* {{ .Labels.component }}
+          *Action Required:* Immediate investigation needed
+          {{ end }}
+        color: 'danger'
+    pagerduty_configs:
+      - routing_key: 'YOUR_PAGERDUTY_INTEGRATION_KEY'
+        description: 'MicroVM Critical Alert: {{ .GroupLabels.alertname }}'
+
+  # Security team receiver
+  - name: 'security-team'
+    email_configs:
+      - to: 'security@company.com'
+        subject: '[SECURITY] MicroVM Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          🔒 SECURITY ALERT 🔒
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Event Type: {{ .Labels.event_type }}
+          Severity: {{ .Labels.severity }}
+          Starts At: {{ .StartsAt }}
+          {{ end }}
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#security-alerts'
+        title: '🔒 Security Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Event Type:* {{ .Labels.event_type }}
+          *Severity:* {{ .Labels.severity }}
+          {{ end }}
+        color: 'warning'
+
+  # Infrastructure team receiver
+  - name: 'infrastructure-team'
+    email_configs:
+      - to: 'infra@company.com'
+        subject: '[INFRA] MicroVM Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          🖥️ INFRASTRUCTURE ALERT
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Starts At: {{ .StartsAt }}
+          {{ end }}
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#infrastructure'
+        title: 'Infrastructure Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          {{ end }}
+
+  # API team receiver
+  - name: 'api-team'
+    email_configs:
+      - to: 'api-team@company.com'
+        subject: '[API] MicroVM Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          🌐 API ALERT
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Starts At: {{ .StartsAt }}
+          {{ end }}
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#api-alerts'
+        title: 'API Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          {{ end }}
+
+  # VM operations receiver
+  - name: 'vm-operations'
+    email_configs:
+      - to: 'vm-ops@company.com'
+        subject: '[VM] MicroVM Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          💻 VM OPERATIONS ALERT
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          VM: {{ .Labels.vm_name }}
+          Severity: {{ .Labels.severity }}
+          Starts At: {{ .StartsAt }}
+          {{ end }}
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#vm-operations'
+        title: 'VM Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *VM:* {{ .Labels.vm_name }}
+          *Severity:* {{ .Labels.severity }}
+          {{ end }}
+
+  # Monitoring team receiver
+  - name: 'monitoring-team'
+    email_configs:
+      - to: 'monitoring@company.com'
+        subject: '[MONITORING] MicroVM Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          📊 MONITORING SYSTEM ALERT
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Starts At: {{ .StartsAt }}
+          {{ end }}
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#monitoring'
+        title: 'Monitoring Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          {{ end }}
+
+# Notification templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

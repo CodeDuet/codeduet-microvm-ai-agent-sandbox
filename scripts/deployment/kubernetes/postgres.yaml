@@ -1,0 +1,175 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: microvm-sandbox
+      app.kubernetes.io/component: database
+      app.kubernetes.io/instance: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: microvm-sandbox
+        app.kubernetes.io/component: database
+        app.kubernetes.io/instance: postgres
+      annotations:
+        prometheus.io/scrape: "false"
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_INITDB_ARGS
+              value: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+        - name: init-script
+          configMap:
+            name: postgres-init-script
+            defaultMode: 0755
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: postgres
+      protocol: TCP
+      name: postgres
+  selector:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: postgres
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: database
+data:
+  init-postgres.sql: |
+    -- Initialize MicroVM Sandbox database schema
+    
+    -- Create extension for UUID generation
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    
+    -- VM state management table
+    CREATE TABLE IF NOT EXISTS vm_instances (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name VARCHAR(255) UNIQUE NOT NULL,
+        os_type VARCHAR(50) NOT NULL CHECK (os_type IN ('linux', 'windows')),
+        state VARCHAR(50) NOT NULL DEFAULT 'stopped',
+        vcpus INTEGER NOT NULL DEFAULT 2,
+        memory_mb INTEGER NOT NULL DEFAULT 1024,
+        disk_size_gb INTEGER DEFAULT 10,
+        template_name VARCHAR(255),
+        config JSONB,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        last_boot_time TIMESTAMP WITH TIME ZONE,
+        boot_time_ms INTEGER,
+        network_config JSONB,
+        resource_allocation JSONB
+    );
+    
+    -- Create indexes for performance
+    CREATE INDEX IF NOT EXISTS idx_vm_instances_state ON vm_instances(state);
+    CREATE INDEX IF NOT EXISTS idx_vm_instances_created_at ON vm_instances(created_at);
+    
+    -- Grant permissions
+    GRANT ALL ON ALL TABLES IN SCHEMA public TO microvm;
+    GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO microvm;

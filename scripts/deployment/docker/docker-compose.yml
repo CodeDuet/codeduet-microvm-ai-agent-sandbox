@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  # Main MicroVM Sandbox API Server
+  microvm-api:
+    build:
+      context: ../../..
+      dockerfile: scripts/deployment/docker/Dockerfile
+    container_name: microvm-api
+    hostname: microvm-api
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "8000:8000"    # FastAPI server
+      - "9090:9090"    # Prometheus metrics
+    volumes:
+      - microvm-data:/app/data
+      - microvm-logs:/app/logs
+      - microvm-snapshots:/app/snapshots
+      - microvm-images:/app/images
+      - /dev/kvm:/dev/kvm
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      # Mount Docker socket for container management (optional)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - MICROVM_CONFIG_PATH=/app/config/config.yaml
+      - MICROVM_LOG_LEVEL=INFO
+      - MICROVM_ENABLE_METRICS=true
+      - MICROVM_DATABASE_URL=postgresql://microvm:microvm@postgres:5432/microvm
+      - MICROVM_REDIS_URL=redis://redis:6379/0
+    networks:
+      - microvm-network
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.microvm-api.rule=Host(`microvm.local`)"
+      - "traefik.http.services.microvm-api.loadbalancer.server.port=8000"
+
+  # Background Worker for async tasks
+  microvm-worker:
+    build:
+      context: ../../..
+      dockerfile: scripts/deployment/docker/Dockerfile
+    container_name: microvm-worker
+    hostname: microvm-worker
+    privileged: true
+    restart: unless-stopped
+    command: ["worker"]
+    volumes:
+      - microvm-data:/app/data
+      - microvm-logs:/app/logs
+      - microvm-snapshots:/app/snapshots
+      - microvm-images:/app/images
+      - /dev/kvm:/dev/kvm
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    environment:
+      - MICROVM_CONFIG_PATH=/app/config/config.yaml
+      - MICROVM_LOG_LEVEL=INFO
+      - MICROVM_DATABASE_URL=postgresql://microvm:microvm@postgres:5432/microvm
+      - MICROVM_REDIS_URL=redis://redis:6379/0
+    networks:
+      - microvm-network
+    depends_on:
+      - postgres
+      - redis
+
+  # PostgreSQL database for state management
+  postgres:
+    image: postgres:15-alpine
+    container_name: microvm-postgres
+    hostname: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=microvm
+      - POSTGRES_USER=microvm
+      - POSTGRES_PASSWORD=microvm
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql:ro
+    networks:
+      - microvm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U microvm -d microvm"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: microvm-redis
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - microvm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: microvm-prometheus
+    hostname: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../monitoring/prometheus/rules.yaml:/etc/prometheus/rules.yaml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - microvm-network
+    depends_on:
+      - microvm-api
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: microvm-grafana
+    hostname: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    networks:
+      - microvm-network
+    depends_on:
+      - prometheus
+
+  # Load balancer (Traefik)
+  traefik:
+    image: traefik:v3.0
+    container_name: microvm-traefik
+    hostname: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=admin@microvm.local
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-data:/data
+    networks:
+      - microvm-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.local`)"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+# Named volumes for data persistence
+volumes:
+  microvm-data:
+    driver: local
+  microvm-logs:
+    driver: local
+  microvm-snapshots:
+    driver: local
+  microvm-images:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  traefik-data:
+    driver: local
+
+# Networks
+networks:
+  microvm-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

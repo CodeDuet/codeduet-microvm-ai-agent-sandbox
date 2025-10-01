@@ -1,0 +1,154 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: microvm-config
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: config
+data:
+  config.yaml: |
+    server:
+      host: "0.0.0.0"
+      port: 8000
+      workers: 4
+      cors_origins: ["*"]
+      
+    cloud_hypervisor:
+      binary_path: "/usr/local/bin/cloud-hypervisor"
+      api_socket_dir: "/tmp/ch-sockets"
+      
+    networking:
+      bridge_name: "chbr0"
+      subnet: "192.168.200.0/24"
+      port_range:
+        start: 10000
+        end: 20000
+        
+    resources:
+      max_vms: 100
+      max_memory_per_vm: 8192
+      max_vcpus_per_vm: 8
+      default_vm_memory: 1024
+      default_vm_vcpus: 2
+      host_cpu_overcommit_ratio: 2.0
+      host_memory_overcommit_ratio: 1.5
+      
+    security:
+      enable_authentication: true
+      jwt_secret_key: "${JWT_SECRET_KEY}"
+      jwt_algorithm: "HS256"
+      jwt_expiration_hours: 24
+      api_key_required: true
+      vm_isolation: true
+      enable_firewall: true
+      password_requirements:
+        min_length: 12
+        require_uppercase: true
+        require_lowercase: true
+        require_numbers: true
+        require_special: true
+      account_lockout:
+        max_attempts: 5
+        lockout_duration_minutes: 30
+        
+    monitoring:
+      prometheus_port: 9090
+      metrics_enabled: true
+      log_level: "INFO"
+      structured_logging: true
+      correlation_tracking: true
+      health_check_interval: 30
+      
+    storage:
+      snapshots_dir: "/app/snapshots"
+      images_dir: "/app/images"
+      data_dir: "/app/data"
+      logs_dir: "/app/logs"
+      cleanup_interval_hours: 24
+      
+    database:
+      url: "${DATABASE_URL}"
+      pool_size: 20
+      max_overflow: 30
+      pool_timeout: 30
+      pool_recycle: 3600
+      
+    redis:
+      url: "${REDIS_URL}"
+      socket_timeout: 30
+      socket_connect_timeout: 30
+      health_check_interval: 30
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    rule_files:
+      - "/etc/prometheus/rules/*.yaml"
+
+    scrape_configs:
+      - job_name: 'microvm-api'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - microvm-sandbox
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: microvm-api
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: metrics
+        metrics_path: '/api/v1/health/metrics'
+        scrape_interval: 10s
+
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - microvm-sandbox
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+
+      - job_name: 'postgresql'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - microvm-sandbox
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: postgres
+
+    alerting:
+      alertmanagers:
+        - kubernetes_sd_configs:
+            - role: endpoints
+              namespaces:
+                names:
+                  - microvm-sandbox
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_service_name]
+              action: keep
+              regex: alertmanager

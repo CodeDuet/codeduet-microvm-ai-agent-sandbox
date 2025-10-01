@@ -1,0 +1,252 @@
+groups:
+  - name: microvm_alerts
+    rules:
+      # System Resource Alerts
+      - alert: HighCPUUsage
+        expr: avg(microvm_host_cpu_usage_percent) > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "Host CPU usage is {{ $value }}% which is above the 85% threshold for 5 minutes"
+
+      - alert: CriticalCPUUsage
+        expr: avg(microvm_host_cpu_usage_percent) > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "Host CPU usage is {{ $value }}% which is above the 95% threshold for 2 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (microvm_host_memory_usage_bytes{type="used"} / microvm_host_memory_usage_bytes{type="total"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Host memory usage is {{ $value }}% which is above the 85% threshold for 5 minutes"
+
+      - alert: CriticalMemoryUsage
+        expr: (microvm_host_memory_usage_bytes{type="used"} / microvm_host_memory_usage_bytes{type="total"}) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Host memory usage is {{ $value }}% which is above the 95% threshold for 2 minutes"
+
+      - alert: HighDiskUsage
+        expr: (microvm_host_disk_usage_bytes{type="used"} / microvm_host_disk_usage_bytes{type="total"}) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High disk usage detected on {{ $labels.device }}"
+          description: "Disk usage on {{ $labels.device }} is {{ $value }}% which is above the 85% threshold for 10 minutes"
+
+      - alert: CriticalDiskUsage
+        expr: (microvm_host_disk_usage_bytes{type="used"} / microvm_host_disk_usage_bytes{type="total"}) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical disk usage detected on {{ $labels.device }}"
+          description: "Disk usage on {{ $labels.device }} is {{ $value }}% which is above the 95% threshold for 5 minutes"
+
+      # VM Performance Alerts
+      - alert: SlowVMBootTime
+        expr: histogram_quantile(0.95, rate(microvm_vm_boot_time_seconds_bucket[10m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: vm_manager
+        annotations:
+          summary: "Slow VM boot times detected"
+          description: "95th percentile VM boot time is {{ $value }}s which is above the 10s threshold"
+
+      - alert: HighVMCPUUsage
+        expr: microvm_vm_cpu_usage_percent > 90
+        for: 10m
+        labels:
+          severity: warning
+          component: vm
+        annotations:
+          summary: "High CPU usage in VM {{ $labels.vm_name }}"
+          description: "VM {{ $labels.vm_name }} ({{ $labels.vm_id }}) CPU usage is {{ $value }}% for 10 minutes"
+
+      - alert: VMMemoryExhaustion
+        expr: (microvm_vm_memory_usage_bytes{type="used"} / microvm_vm_memory_usage_bytes{type="total"}) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: vm
+        annotations:
+          summary: "VM {{ $labels.vm_name }} memory exhaustion"
+          description: "VM {{ $labels.vm_name }} memory usage is {{ $value }}% which is critically high"
+
+      # API Performance Alerts
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(microvm_api_request_duration_seconds_bucket[10m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile API response time is {{ $value }}s which is above the 1s threshold"
+
+      - alert: HighAPIErrorRate
+        expr: (rate(microvm_api_requests_total{status=~"5.."}[5m]) / rate(microvm_api_requests_total[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API error rate detected"
+          description: "API error rate is {{ $value }}% which is above the 5% threshold"
+
+      - alert: CriticalAPIErrorRate
+        expr: (rate(microvm_api_requests_total{status=~"5.."}[5m]) / rate(microvm_api_requests_total[5m])) * 100 > 20
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Critical API error rate detected"
+          description: "API error rate is {{ $value }}% which is critically high"
+
+      # Component Health Alerts
+      - alert: ComponentUnhealthy
+        expr: microvm_health_check_status == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: "{{ $labels.component }}"
+        annotations:
+          summary: "Component {{ $labels.component }} is unhealthy"
+          description: "Health check for {{ $labels.component }} has been failing for 2 minutes"
+
+      - alert: HealthCheckTimeout
+        expr: microvm_health_check_duration_seconds > 5
+        for: 1m
+        labels:
+          severity: warning
+          component: "{{ $labels.component }}"
+        annotations:
+          summary: "Health check timeout for {{ $labels.component }}"
+          description: "Health check for {{ $labels.component }} is taking {{ $value }}s which is above the 5s threshold"
+
+      # Security Alerts
+      - alert: HighSecurityEventRate
+        expr: rate(microvm_security_events_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High security event rate detected"
+          description: "Security event rate is {{ $value }} events/sec which may indicate an attack"
+
+      - alert: CriticalSecurityEvent
+        expr: increase(microvm_security_events_total{severity="critical"}[1m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Critical security event detected"
+          description: "A critical security event of type {{ $labels.event_type }} has been detected"
+
+      - alert: HighAuthenticationFailureRate
+        expr: rate(microvm_authentication_attempts_total{status="failed"}[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failure rate is {{ $value }} failures/sec which may indicate a brute force attack"
+
+      # Resource Management Alerts
+      - alert: ResourceQuotaExceeded
+        expr: microvm_resource_quota_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: resource_manager
+        annotations:
+          summary: "Resource quota nearly exceeded for user {{ $labels.user_id }}"
+          description: "User {{ $labels.user_id }} {{ $labels.resource_type }} quota usage is {{ $value }}%"
+
+      - alert: ResourceAllocationFailure
+        expr: increase(microvm_errors_total{component="resource_manager", error_type="allocation_failed"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          component: resource_manager
+        annotations:
+          summary: "Resource allocation failures detected"
+          description: "{{ $value }} resource allocation failures in the last 5 minutes"
+
+      # Snapshot Operations Alerts
+      - alert: SnapshotFailureRate
+        expr: (rate(microvm_snapshot_operations_total{status="error"}[10m]) / rate(microvm_snapshot_operations_total[10m])) * 100 > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: snapshot_manager
+        annotations:
+          summary: "High snapshot failure rate"
+          description: "Snapshot operation failure rate is {{ $value }}% which is above the 10% threshold"
+
+      - alert: LongSnapshotDuration
+        expr: histogram_quantile(0.95, rate(microvm_snapshot_duration_seconds_bucket[10m])) > 300
+        for: 5m
+        labels:
+          severity: warning
+          component: snapshot_manager
+        annotations:
+          summary: "Long snapshot operation duration"
+          description: "95th percentile snapshot duration is {{ $value }}s which is above the 5-minute threshold"
+
+      # Guest Agent Alerts
+      - alert: GuestAgentUnresponsive
+        expr: increase(microvm_guest_operations_total{status="error"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          component: guest_agent
+        annotations:
+          summary: "Guest agent {{ $labels.vm_name }} may be unresponsive"
+          description: "{{ $value }} guest operation failures in VM {{ $labels.vm_name }} over 5 minutes"
+
+      # Error Rate Alerts
+      - alert: HighErrorRate
+        expr: rate(microvm_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: "{{ $labels.component }}"
+        annotations:
+          summary: "High error rate in {{ $labels.component }}"
+          description: "Error rate in {{ $labels.component }} is {{ $value }} errors/sec for {{ $labels.error_type }}"
+
+  - name: microvm_deadman_switch
+    rules:
+      - alert: DeadMansSwitch
+        expr: vector(1)
+        labels:
+          severity: critical
+          component: monitoring
+        annotations:
+          summary: "Monitoring heartbeat"
+          description: "This alert is always firing to ensure the monitoring system is working"

@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: microvm-api
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: serviceaccount
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: microvm-api
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: rbac
+rules:
+  # Pod management for scaling and monitoring
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/status"]
+    verbs: ["get", "list", "watch"]
+  
+  # Service discovery
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+  
+  # ConfigMap and Secret access
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  
+  # Deployment scaling
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  
+  # HPA for auto-scaling
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  
+  # Metrics access
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+  
+  # Events for monitoring
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch", "create"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: microvm-api
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: rbac
+subjects:
+  - kind: ServiceAccount
+    name: microvm-api
+    namespace: microvm-sandbox
+roleRef:
+  kind: ClusterRole
+  name: microvm-api
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: microvm-api-namespace
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: rbac
+rules:
+  # Full access within namespace for resource management
+  - apiGroups: [""]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["apps"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["autoscaling"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["*"]
+    verbs: ["*"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: microvm-api-namespace
+  namespace: microvm-sandbox
+  labels:
+    app.kubernetes.io/name: microvm-sandbox
+    app.kubernetes.io/component: rbac
+subjects:
+  - kind: ServiceAccount
+    name: microvm-api
+    namespace: microvm-sandbox
+roleRef:
+  kind: Role
+  name: microvm-api-namespace
+  apiGroup: rbac.authorization.k8s.io

@@ -6,14 +6,34 @@ from typing import Dict, Any
 
 from src.utils.logging import setup_logging
 from src.utils.config import get_settings
-from src.api.routes import vms, system, snapshots, network, guest, resources
+from src.utils.metrics import MetricsCollector, metrics
+from src.utils.database import get_database_service, close_database_service
+from src.api.routes import vms, system, snapshots, network, guest, resources, health, cluster
 from src.api.middleware.logging import LoggingMiddleware
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
-    yield
+    
+    # Initialize database service
+    try:
+        await get_database_service()
+    except Exception as e:
+        print(f"Warning: Failed to initialize database service: {e}")
+    
+    # Start metrics collection
+    collector = MetricsCollector(metrics, interval=30)
+    await collector.start()
+    
+    try:
+        yield
+    finally:
+        # Stop metrics collection
+        await collector.stop()
+        
+        # Close database service
+        await close_database_service()
 
 
 app = FastAPI(
@@ -43,6 +63,8 @@ app.include_router(snapshots.router, prefix="/api/v1/snapshots", tags=["Snapshot
 app.include_router(network.router, prefix="/api/v1/network", tags=["Network"])
 app.include_router(guest.router, prefix="/api/v1", tags=["Guest"])
 app.include_router(resources.router, tags=["Resources"])
+app.include_router(health.router, prefix="/api/v1", tags=["Health"])
+app.include_router(cluster.router, prefix="/api/v1", tags=["Cluster"])
 
 
 @app.get("/")
@@ -51,7 +73,8 @@ async def root() -> Dict[str, str]:
 
 
 @app.get("/health")
-async def health_check() -> Dict[str, Any]:
+async def simple_health_check() -> Dict[str, Any]:
+    """Simple health check for backwards compatibility."""
     return {
         "status": "healthy",
         "service": "microvm-sandbox",
