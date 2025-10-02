@@ -10,7 +10,7 @@ To quote Solomon Hykes:
 🕵️ **Data Exfiltration Attacks** - Malicious actors stealing source code, secrets, or sensitive data from environment variables  
 🎯 **Proxy Attacks** - Your infrastructure hijacked for DDoS attacks or to mask the origin of cyber attacks against other targets  
 
-**Our MicroVM solution eliminates these risks with hardware-level isolation that traditional containers simply cannot provide.**
+**This open source MicroVM solution eliminates these risks with hardware-level isolation that traditional containers simply cannot provide.**
 
 A production-ready AI agent microVM sandbox system using Cloud Hypervisor and Python, providing hardware-level isolation through MicroVMs while maintaining lightweight resource usage. Supports both Linux and Windows guest operating systems.
 
