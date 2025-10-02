@@ -1,6 +1,18 @@
-# MicroVM Sandbox
+# AI Agent MicroVM Sandbox
+To quote Solomon Hykes:
+> An AI agent is an LLM wrecking its environment in a loop.
 
-A production-ready MicroVM sandbox system using Cloud Hypervisor and Python, providing hardware-level isolation through MicroVMs while maintaining lightweight resource usage. Supports both Linux and Windows guest operating systems.
+## 🛡️ The AI Agent Security Crisis You Can't Ignore
+
+**Your AI agents are one command away from disaster.** Here are three critical risks that traditional "YOLO mode" AI deployment exposes you to:
+
+🚨 **Destructive Shell Commands** - Bad scripts deleting or corrupting critical files, databases, or entire systems  
+🕵️ **Data Exfiltration Attacks** - Malicious actors stealing source code, secrets, or sensitive data from environment variables  
+🎯 **Proxy Attacks** - Your infrastructure hijacked for DDoS attacks or to mask the origin of cyber attacks against other targets  
+
+**Our MicroVM solution eliminates these risks with hardware-level isolation that traditional containers simply cannot provide.**
+
+A production-ready AI agent microVM sandbox system using Cloud Hypervisor and Python, providing hardware-level isolation through MicroVMs while maintaining lightweight resource usage. Supports both Linux and Windows guest operating systems.
 
 ## 🚀 Features
 
