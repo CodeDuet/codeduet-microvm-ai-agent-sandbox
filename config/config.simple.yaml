@@ -1,0 +1,31 @@
+# Simplified MicroVM Configuration
+# For quick setup with sensible defaults
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+
+cloud_hypervisor:
+  binary_path: "/usr/local/bin/cloud-hypervisor"
+
+networking:
+  bridge_name: "chbr0"
+  subnet: "192.168.200.0/24"
+
+resources:
+  max_vms: 50
+  max_memory_per_vm: 8192
+  max_vcpus_per_vm: 8
+
+security:
+  authentication:
+    enabled: true
+    jwt_secret: "A-yb2iNB0oamzwkT-bn8FFR4WnR3iur7GuLGDLhfhU0"
+    token_expire_minutes: 60
+
+monitoring:
+  metrics_enabled: true
+  log_level: "INFO"
+
+# Advanced settings moved to config/advanced.yaml
+# Security hardening options in config/security.yaml

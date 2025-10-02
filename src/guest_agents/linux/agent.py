@@ -184,9 +184,21 @@ class LinuxGuestAgent:
             exec_env = os.environ.copy()
             exec_env.update(env)
             
-            # Execute command
-            process = await asyncio.create_subprocess_shell(
-                command,
+            # Execute command safely with argument list instead of shell
+            import shlex
+            try:
+                cmd_args = shlex.split(command)
+            except ValueError:
+                return {
+                    "success": False,
+                    "error": "Invalid command syntax",
+                    "stdout": "",
+                    "stderr": "",
+                    "exit_code": 1
+                }
+            
+            process = await asyncio.create_subprocess_exec(
+                *cmd_args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=working_dir,
@@ -233,20 +245,29 @@ class LinuxGuestAgent:
             }
         
         try:
+            # Validate file path to prevent directory traversal
+            file_path_obj = Path(file_path).resolve()
+            allowed_base = Path("/tmp").resolve()
+            
+            if not str(file_path_obj).startswith(str(allowed_base)):
+                return {
+                    "success": False,
+                    "error": "File path not allowed - must be under /tmp"
+                }
+            
             # Decode content
             content = base64.b64decode(content_b64)
             
             # Create parent directories if requested
-            file_path_obj = Path(file_path)
             if create_dirs:
                 file_path_obj.parent.mkdir(parents=True, exist_ok=True)
             
             # Write file
-            with open(file_path, 'wb') as f:
+            with open(file_path_obj, 'wb') as f:
                 f.write(content)
             
             # Set permissions
-            os.chmod(file_path, mode)
+            os.chmod(file_path_obj, mode)
             
             # Calculate checksum for verification
             checksum = hashlib.sha256(content).hexdigest()

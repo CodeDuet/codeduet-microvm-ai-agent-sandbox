@@ -1,13 +1,14 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List, Dict, Any
 from src.api.models.vm import VMCreateRequest, VMResponse, VMListResponse
 from src.core.vm_manager import VMManager
+from src.api.middleware.auth import require_auth, TokenData
 
 router = APIRouter()
 vm_manager = VMManager()
 
 
-@router.post("/", response_model=VMResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=VMResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_auth)])
 async def create_vm(vm_request: VMCreateRequest) -> VMResponse:
     try:
         vm_info = await vm_manager.create_vm(vm_request)
@@ -19,7 +20,7 @@ async def create_vm(vm_request: VMCreateRequest) -> VMResponse:
         )
 
 
-@router.post("/linux", response_model=VMResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/linux", response_model=VMResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_auth)])
 async def create_linux_vm(vm_request: VMCreateRequest) -> VMResponse:
     """Create a Linux MicroVM with optimized kernel boot."""
     try:
@@ -32,7 +33,7 @@ async def create_linux_vm(vm_request: VMCreateRequest) -> VMResponse:
         )
 
 
-@router.post("/windows", response_model=VMResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/windows", response_model=VMResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_auth)])
 async def create_windows_vm(vm_request: VMCreateRequest) -> VMResponse:
     """Create a Windows MicroVM with UEFI boot and VirtIO drivers."""
     try:
@@ -45,7 +46,7 @@ async def create_windows_vm(vm_request: VMCreateRequest) -> VMResponse:
         )
 
 
-@router.get("/", response_model=VMListResponse)
+@router.get("/", response_model=VMListResponse, dependencies=[Depends(require_auth)])
 async def list_vms() -> VMListResponse:
     try:
         vms = await vm_manager.list_vms()
@@ -57,7 +58,7 @@ async def list_vms() -> VMListResponse:
         )
 
 
-@router.get("/{vm_name}", response_model=VMResponse)
+@router.get("/{vm_name}", response_model=VMResponse, dependencies=[Depends(require_auth)])
 async def get_vm(vm_name: str) -> VMResponse:
     try:
         vm_info = await vm_manager.get_vm(vm_name)
@@ -76,7 +77,7 @@ async def get_vm(vm_name: str) -> VMResponse:
         )
 
 
-@router.post("/{vm_name}/start")
+@router.post("/{vm_name}/start", dependencies=[Depends(require_auth)])
 async def start_vm(vm_name: str) -> Dict[str, str]:
     try:
         await vm_manager.start_vm(vm_name)
@@ -88,7 +89,7 @@ async def start_vm(vm_name: str) -> Dict[str, str]:
         )
 
 
-@router.post("/{vm_name}/stop")
+@router.post("/{vm_name}/stop", dependencies=[Depends(require_auth)])
 async def stop_vm(vm_name: str) -> Dict[str, str]:
     try:
         await vm_manager.stop_vm(vm_name)
@@ -100,7 +101,7 @@ async def stop_vm(vm_name: str) -> Dict[str, str]:
         )
 
 
-@router.delete("/{vm_name}")
+@router.delete("/{vm_name}", dependencies=[Depends(require_auth)])
 async def delete_vm(vm_name: str) -> Dict[str, str]:
     try:
         await vm_manager.delete_vm(vm_name)
@@ -112,7 +113,7 @@ async def delete_vm(vm_name: str) -> Dict[str, str]:
         )
 
 
-@router.post("/{vm_name}/pause")
+@router.post("/{vm_name}/pause", dependencies=[Depends(require_auth)])
 async def pause_vm(vm_name: str) -> Dict[str, str]:
     try:
         await vm_manager.pause_vm(vm_name)
@@ -124,7 +125,7 @@ async def pause_vm(vm_name: str) -> Dict[str, str]:
         )
 
 
-@router.post("/{vm_name}/resume")
+@router.post("/{vm_name}/resume", dependencies=[Depends(require_auth)])
 async def resume_vm(vm_name: str) -> Dict[str, str]:
     try:
         await vm_manager.resume_vm(vm_name)

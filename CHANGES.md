@@ -1,5 +1,23 @@
 # Changelog
 
+## [2025-10-02] - Critical Security Vulnerability Fixes
+### Fixed
+- **CRITICAL: CORS Wildcard Vulnerability** (files: src/api/server.py)
+  - Removed wildcard (*) from allow_origins to prevent CSRF attacks
+  - Restricted to specific localhost origins for development safety
+- **CRITICAL: Hardcoded JWT Secret** (files: config/config.yaml) 
+  - Replaced default JWT secret with cryptographically secure random key
+  - Prevents authentication token forgery attacks
+- **HIGH: Command Injection in Guest Agent** (files: src/guest_agents/linux/agent.py)
+  - Replaced unsafe subprocess_shell with subprocess_exec and shlex parsing
+  - Prevents remote code execution via malicious commands
+- **HIGH: Path Traversal Vulnerability** (files: src/guest_agents/linux/agent.py)
+  - Added path validation to restrict file writes to /tmp directory only
+  - Prevents unauthorized file system access
+- **HIGH: Missing Authentication on VM Endpoints** (files: src/api/routes/vms.py)
+  - Added require_auth dependency to all VM management endpoints
+  - Prevents unauthorized VM creation, deletion, and control
+
 ## [2025-10-01] - Phase 4 Week 12: Testing and Documentation Completion ✅ COMPLETED
 ### Added
 - **Comprehensive Integration Test Suite** (files: tests/integration/)
@@ -52,6 +70,10 @@
 - Async fixture compatibility for pytest-asyncio
 - Core test suite reliability and error handling
 - Documentation links and cross-references
+- Missing setup scripts and configuration files
+- Broken internal documentation links
+- VM template references and examples
+- Images directory structure and documentation
 
 ### Performance
 - 144 total unit tests passing with core functionality verified

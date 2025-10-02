@@ -1,0 +1,28 @@
+# Windows Server 2022 VM Template
+# Optimized for Windows Server 2022 workloads
+
+windows-server-2022:
+  vcpus: 4
+  memory_mb: 4096
+  firmware: "images/windows/OVMF.fd"
+  disk: "images/windows/windows-server-2022.qcow2"
+  cdrom: "images/windows/virtio-win.iso"
+  boot_type: "uefi"
+  network_config:
+    bridge: "chbr0"
+    dhcp: true
+  guest_agent:
+    enabled: true
+    port: 8080
+    type: "windows"
+  storage:
+    disk_size_gb: 80
+    additional_disks: []
+  resource_limits:
+    cpu_quota_percent: 80
+    memory_limit_percent: 90
+  features:
+    - "IIS-WebServerRole"
+    - "IIS-ManagementConsole"
+    - "Microsoft-Hyper-V-Management-PowerShell"
+  description: "Template for Windows Server 2022 with IIS and management tools"

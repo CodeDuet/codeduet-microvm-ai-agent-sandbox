@@ -65,7 +65,7 @@ security:
   # Authentication and Authorization
   authentication:
     enabled: true
-    jwt_secret: "A-yb2iNB0oamzwkT-bn8FFR4WnR3iur7GuLGDLhfhU0"
+    jwt_secret: "your-secret-key-change-in-production"
     jwt_algorithm: "HS256"
     token_expire_minutes: 60
     max_failed_attempts: 5
