@@ -13,6 +13,40 @@ A production-ready MicroVM sandbox system using Cloud Hypervisor and Python, pro
 - **Resource Management**: CPU, memory quotas and system resource monitoring
 - **Production Ready**: Monitoring, scaling, security hardening, and deployment automation
 
+## 📦 Python SDK
+
+The MicroVM Sandbox includes a lightweight Python SDK for easy integration:
+
+```bash
+# Install from PyPI
+pip install py-microvm
+```
+
+**Quick Usage:**
+```python
+from microvm_client import MicroVMClient
+
+async with MicroVMClient("http://localhost:8000") as client:
+    # Create and start a VM
+    vm = await client.start_vm("my-vm", {"template": "linux-default"})
+    
+    # Execute commands
+    result = await client.exec_command(vm.id, "python --version")
+    print(result.output)
+    
+    # Upload files
+    await client.upload_file(vm.id, "script.py", "/tmp/script.py")
+    
+    # Clean up
+    await client.destroy_vm(vm.id)
+```
+
+**Package Information:**
+- **PyPI**: https://pypi.org/project/py-microvm/
+- **Version**: 1.0.1
+- **License**: MIT
+- **Dependencies**: httpx, pydantic
+
 ## 🏗️ Architecture
 
 ```
@@ -72,8 +106,8 @@ A production-ready MicroVM sandbox system using Cloud Hypervisor and Python, pro
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd microvm-sandbox
+git clone https://github.com/CodeDuet/codeduet-microvm-ai-agent-sandbox.git
+cd codeduet-microvm-ai-agent-sandbox
 
 # Install system dependencies
 sudo ./scripts/setup/install-dependencies.sh
@@ -420,8 +454,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **[Recovery Procedures](docs/user-guide/troubleshooting.md#recovery-procedures)**
 
 ### 💬 Community Support
-- **Issues**: [GitHub Issues](https://github.com/your-org/microvm-sandbox/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/microvm-sandbox/discussions)
+- **Issues**: [GitHub Issues](https://github.com/CodeDuet/codeduet-microvm-ai-agent-sandbox/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/CodeDuet/codeduet-microvm-ai-agent-sandbox/discussions)
 - **Documentation**: [Complete Documentation](docs/)
 
 ### 🚨 Getting Help
