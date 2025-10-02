@@ -127,25 +127,89 @@ curl -X POST http://localhost:8000/api/v1/vms \
 
 ## 📚 Documentation
 
-### API Reference
-- **OpenAPI Docs**: Visit `http://localhost:8000/docs` when server is running
-- **Redoc**: Visit `http://localhost:8000/redoc` for alternative documentation
+### 🚀 Getting Started
+- **[Quick Start Guide](docs/user-guide/quickstart.md)** - Get up and running in minutes
+- **[Installation & Setup](docs/user-guide/quickstart.md#installation)** - Complete installation instructions
+- **[Your First VM](docs/user-guide/quickstart.md#create-your-first-vm)** - Create and manage your first VM
 
-### User Guides
-- [VM Management](docs/user-guide/vm-management.md)
-- [Network Configuration](docs/user-guide/networking.md)
-- [Snapshot Operations](docs/user-guide/snapshots.md)
-- [Troubleshooting](docs/user-guide/troubleshooting.md)
+### 📖 User Guides
+- **[VM Management Guide](docs/user-guide/vm-management.md)** - Complete VM lifecycle management
+  - Creating, starting, stopping VMs
+  - Command execution and file transfer
+  - Resource allocation and monitoring
+  - Windows and Linux VM operations
+- **[Troubleshooting Guide](docs/user-guide/troubleshooting.md)** - Common issues and solutions
+  - VM startup problems
+  - Network connectivity issues
+  - Performance optimization
+  - Debug and recovery procedures
 
-### Development
-- [Development Setup](docs/development/setup.md)
-- [Testing Guide](docs/development/testing.md)
-- [Contributing Guidelines](docs/development/contributing.md)
+### 🔧 API Reference
+- **[Complete API Documentation](docs/api/reference.md)** - Comprehensive REST API reference
+  - All endpoints with examples
+  - Authentication and authorization
+  - Error codes and responses
+  - WebSocket endpoints
+- **Interactive API Docs**: Visit `http://localhost:8000/docs` when server is running
+- **Alternative Docs**: Visit `http://localhost:8000/redoc` for ReDoc interface
 
-### Deployment
-- [Docker Deployment](docs/deployment/docker.md)
-- [Kubernetes Deployment](docs/deployment/kubernetes.md)
-- [Bare Metal Deployment](docs/deployment/bare-metal.md)
+### 🚀 Deployment Guides
+- **[Docker Deployment](docs/deployment/docker.md)** - Containerized deployment
+  - Single container setup
+  - Multi-service docker-compose
+  - Production configurations
+  - Monitoring and security
+- **[Kubernetes Deployment](docs/deployment/kubernetes.md)** - Cloud-native deployment
+  - Complete manifests and Helm charts
+  - High availability setup
+  - Auto-scaling configuration
+  - Monitoring integration
+- **[Bare Metal Deployment](docs/deployment/bare-metal.md)** - Direct server installation
+  - System optimization
+  - Performance tuning
+  - Security hardening
+  - Maintenance procedures
+
+### ⚡ How-To Guides
+
+#### VM Operations
+- **Creating VMs**: See [VM Management - Creating VMs](docs/user-guide/vm-management.md#creating-vms)
+- **Managing Snapshots**: See [VM Management - Snapshot Management](docs/user-guide/vm-management.md#snapshot-management)
+- **File Transfer**: See [VM Management - File Transfer](docs/user-guide/vm-management.md#file-transfer)
+- **Command Execution**: See [VM Management - Command Execution](docs/user-guide/vm-management.md#command-execution)
+
+#### Network Configuration
+- **Basic Networking**: See [VM Management - Network Configuration](docs/user-guide/vm-management.md#network-configuration)
+- **Port Forwarding**: See [VM Management - Port Forwarding](docs/user-guide/vm-management.md#port-forwarding)
+- **Network Isolation**: See [VM Management - Network Isolation](docs/user-guide/vm-management.md#network-isolation)
+
+#### Performance & Monitoring
+- **Resource Monitoring**: See [VM Management - Resource Management](docs/user-guide/vm-management.md#resource-management)
+- **Performance Tuning**: See [Bare Metal Deployment - Performance Optimization](docs/deployment/bare-metal.md#performance-optimization)
+- **Load Testing**: See [Load Testing Script](scripts/testing/load-test.py)
+
+#### Security & Compliance
+- **Authentication Setup**: See [API Reference - Authentication](docs/api/reference.md#authentication)
+- **Security Hardening**: See [Bare Metal Deployment - Security Hardening](docs/deployment/bare-metal.md#security-hardening)
+- **Audit Logging**: See [API Reference - Security Management](docs/api/reference.md#security-management)
+
+#### Troubleshooting
+- **VM Won't Start**: See [Troubleshooting - VM Creation Failures](docs/user-guide/troubleshooting.md#vm-creation-failures)
+- **Network Issues**: See [Troubleshooting - Network Connectivity](docs/user-guide/troubleshooting.md#network-connectivity-problems)
+- **Performance Issues**: See [Troubleshooting - Performance Issues](docs/user-guide/troubleshooting.md#performance-issues)
+- **Debug Mode**: See [Troubleshooting - Advanced Diagnostics](docs/user-guide/troubleshooting.md#advanced-diagnostics)
+
+### 🧪 Testing Documentation
+- **[Integration Tests](tests/integration/)** - VM lifecycle and security integration tests
+- **[Performance Tests](tests/performance/)** - Boot time, resource usage, and load testing
+- **[Load Testing Guide](scripts/testing/load-test.py)** - API load testing framework
+- **[Test Validation](scripts/testing/validate-tests.py)** - Test syntax and import validation
+
+### 🔍 Advanced Topics
+- **High Availability**: See [Kubernetes Deployment - High Availability](docs/deployment/kubernetes.md#high-availability-setup)
+- **Auto-scaling**: See [Kubernetes Deployment - Scaling and Autoscaling](docs/deployment/kubernetes.md#scaling-and-autoscaling)
+- **Monitoring Setup**: See [Docker Deployment - Monitoring](docs/deployment/docker.md#monitoring-and-logging)
+- **Backup & Recovery**: See [Bare Metal Deployment - Backup and Recovery](docs/deployment/bare-metal.md#backup-and-recovery)
 
 ## 🛠️ Development
 
@@ -165,16 +229,26 @@ make dev-server
 ### Testing
 
 ```bash
-# Run all tests
-make test
+# Run core functionality tests (most reliable)
+python scripts/testing/run-core-tests.py
 
-# Run specific test suites
-pytest tests/unit/
-pytest tests/integration/
-pytest tests/performance/
+# Run all unit tests
+pytest tests/unit/ -v
+
+# Run integration tests (requires VM infrastructure)
+pytest tests/integration/ -v
+
+# Run performance tests
+pytest tests/performance/ -v
+
+# Validate test syntax and imports
+python scripts/testing/validate-tests.py
+
+# Run load testing against API
+python scripts/testing/load-test.py --users 10 --operations 5
 
 # Run with coverage
-pytest --cov=src tests/
+pytest --cov=src tests/unit/
 ```
 
 ### Code Quality
@@ -218,21 +292,32 @@ sudo systemctl enable microvm-sandbox
 sudo systemctl start microvm-sandbox
 ```
 
-## 📊 Monitoring
+## 📊 Monitoring & Observability
 
-The system includes comprehensive monitoring capabilities:
+The system includes enterprise-grade monitoring and observability:
 
-- **Prometheus Metrics**: VM performance, resource usage, API metrics
-- **Grafana Dashboards**: Pre-built dashboards for system visualization
-- **Health Checks**: Built-in health endpoints for load balancers
-- **Structured Logging**: JSON logs with correlation IDs
+- **[Prometheus Metrics](docs/api/reference.md#system-metrics)**: VM performance, resource usage, API metrics
+- **[Grafana Dashboards](docs/deployment/docker.md#monitoring-and-logging)**: Pre-built dashboards for system visualization
+- **[Health Checks](docs/api/reference.md#health-and-status)**: Built-in health endpoints for load balancers
+- **[Structured Logging](docs/deployment/bare-metal.md#monitoring-setup)**: JSON logs with correlation IDs
+- **[Performance Testing](docs/user-guide/troubleshooting.md#performance-issues)**: Load testing and benchmarking tools
 
 ```bash
-# Access monitoring
-http://localhost:9090  # Prometheus
-http://localhost:3000  # Grafana
+# Access monitoring endpoints
+http://localhost:9090  # Prometheus metrics
+http://localhost:3000  # Grafana dashboards  
 http://localhost:8000/health  # Health check
+http://localhost:8000/status  # Detailed status
+http://localhost:8000/api/v1/system/metrics  # System metrics API
+
+# Performance testing
+python scripts/testing/load-test.py --users 50 --operations 10
 ```
+
+For complete monitoring setup guides, see:
+- **[Docker Monitoring Setup](docs/deployment/docker.md#monitoring-and-logging)**
+- **[Kubernetes Monitoring](docs/deployment/kubernetes.md#monitoring-and-observability)**
+- **[Bare Metal Monitoring](docs/deployment/bare-metal.md#monitoring-setup)**
 
 ## 🔧 Configuration
 
@@ -265,14 +350,22 @@ networking:
     end: 30000
 ```
 
-## 🔒 Security
+## 🔒 Security & Compliance
 
-- **VM Isolation**: Hardware-level isolation via KVM
-- **Network Isolation**: Separate network namespaces per VM
-- **Input Validation**: Comprehensive request validation
-- **Authentication**: API key-based authentication
-- **Audit Logging**: Security events and access logs
-- **Resource Limits**: Prevent resource exhaustion attacks
+Enterprise-grade security with comprehensive compliance support:
+
+- **[VM Isolation](docs/user-guide/vm-management.md#network-isolation)**: Hardware-level isolation via KVM
+- **[Network Security](docs/api/reference.md#network-management)**: Separate network namespaces per VM
+- **[Input Validation](docs/api/reference.md#error-responses)**: Comprehensive request validation and sanitization
+- **[Authentication & RBAC](docs/api/reference.md#authentication)**: JWT-based authentication with role-based access control
+- **[Audit Logging](docs/api/reference.md#security-management)**: Security events and compliance logging
+- **[Security Scanning](docs/api/reference.md#security-management)**: Vulnerability scanning and risk assessment
+- **[Compliance Frameworks](docs/user-guide/troubleshooting.md#compliance-logging)**: SOC 2, ISO 27001, HIPAA, PCI DSS, GDPR support
+
+Security setup guides:
+- **[Security Hardening](docs/deployment/bare-metal.md#security-hardening)**
+- **[Network Security](docs/deployment/kubernetes.md#security-configuration)**
+- **[Docker Security](docs/deployment/docker.md#security-hardening)**
 
 ## 🚀 Performance
 
@@ -312,11 +405,34 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [KVM Documentation](https://www.linux-kvm.org/)
 
-## 📞 Support
+## 📞 Support & Help
 
+### 📖 Documentation & Guides
+- **[Quick Start Guide](docs/user-guide/quickstart.md)** - Get started in minutes
+- **[Troubleshooting Guide](docs/user-guide/troubleshooting.md)** - Common issues and solutions
+- **[Complete API Reference](docs/api/reference.md)** - Full API documentation
+- **[Deployment Guides](docs/deployment/)** - Docker, Kubernetes, and bare metal
+
+### 🔧 Self-Help Resources
+- **[FAQ & Common Issues](docs/user-guide/troubleshooting.md#common-issues)**
+- **[Performance Tuning](docs/user-guide/troubleshooting.md#performance-issues)**
+- **[Debug Procedures](docs/user-guide/troubleshooting.md#advanced-diagnostics)**
+- **[Recovery Procedures](docs/user-guide/troubleshooting.md#recovery-procedures)**
+
+### 💬 Community Support
 - **Issues**: [GitHub Issues](https://github.com/your-org/microvm-sandbox/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-org/microvm-sandbox/discussions)
-- **Documentation**: [Project Wiki](https://github.com/your-org/microvm-sandbox/wiki)
+- **Documentation**: [Complete Documentation](docs/)
+
+### 🚨 Getting Help
+When reporting issues, please include:
+1. **System Information**: OS, hardware specs, Cloud Hypervisor version
+2. **Configuration**: Relevant config files (redact sensitive data)
+3. **Logs**: Error logs and debug output
+4. **Steps to Reproduce**: Clear reproduction steps
+5. **Expected vs Actual**: What you expected vs what happened
+
+See our **[Bug Reporting Guide](docs/user-guide/troubleshooting.md#getting-help)** for detailed instructions.
 
 ---
 

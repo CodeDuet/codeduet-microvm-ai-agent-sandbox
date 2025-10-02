@@ -9,7 +9,7 @@ from typing import Dict, Any
 
 from src.core.vm_manager import VMManager
 from src.core.security_manager import SecurityManager
-from src.utils.config import Config
+from src.utils.config import get_config
 from src.utils.security import SecurityUtils
 from src.api.models.vm import VMRequest
 
@@ -20,7 +20,7 @@ class TestSecurityIntegration:
     @pytest.fixture(autouse=True)
     async def setup(self):
         """Setup test environment."""
-        self.config = Config()
+        self.config = get_config()
         self.vm_manager = VMManager(self.config)
         self.security_manager = SecurityManager(self.config)
         self.security_utils = SecurityUtils(self.config)

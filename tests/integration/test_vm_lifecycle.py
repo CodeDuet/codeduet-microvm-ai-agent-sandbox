@@ -14,7 +14,7 @@ from src.core.vm_manager import VMManager
 from src.core.ch_client import CloudHypervisorClient
 from src.core.network_manager import NetworkManager
 from src.core.snapshot_manager import SnapshotManager
-from src.utils.config import Config
+from src.utils.config import get_config
 from src.api.models.vm import VMRequest, VMInfo
 
 
@@ -24,7 +24,7 @@ class TestVMLifecycle:
     @pytest.fixture(autouse=True)
     async def setup(self):
         """Setup test environment."""
-        self.config = Config()
+        self.config = get_config()
         self.vm_manager = VMManager(self.config)
         self.network_manager = NetworkManager(self.config)
         self.snapshot_manager = SnapshotManager(self.config)
@@ -299,7 +299,7 @@ class TestGuestCommunication:
     @pytest.fixture(autouse=True)
     async def setup(self):
         """Setup test environment."""
-        self.config = Config()
+        self.config = get_config()
         self.vm_manager = VMManager(self.config)
         self.test_vms = []
         
