@@ -53,6 +53,12 @@ class CloudHypervisorClient:
             cmd.extend(["--disk", disk_params])
         if "cdrom" in vm_config:
             cmd.extend(["--disk", f"path={vm_config['cdrom']},readonly=on"])
+        
+        # Add VNC console support for Windows VMs (hypervisor VNC)
+        if vm_config.get("vnc_server", {}).get("enabled", False) and "firmware" in vm_config:
+            vnc_config = vm_config["vnc_server"]
+            vnc_port = vnc_config.get("port", 5900)
+            cmd.extend(["--console", f"vnc={vnc_port}"])
 
         logger.debug(f"Cloud Hypervisor command: {' '.join(cmd)}")
         
@@ -291,6 +297,29 @@ class CloudHypervisorClient:
             if vm_config["devices"]["serial"].get("file"):
                 serial_config = {"mode": "File", "file": vm_config["devices"]["serial"]["file"]}
             config["serial"] = serial_config
+        
+        # Add VNC server configuration
+        if vm_config.get("vnc_server", {}).get("enabled", False):
+            vnc_config = vm_config["vnc_server"]
+            
+            # For Windows VMs, use hypervisor's built-in VNC console
+            if "firmware" in vm_config:  # Windows VM with UEFI
+                config["console"] = {
+                    "mode": "VNC",
+                    "socket": f"/tmp/vnc-console-{self.vm_name}.sock"
+                }
+                # Add VNC-specific configuration for Windows
+                if "port" in vnc_config:
+                    config["console"]["port"] = vnc_config["port"]
+            else:
+                # For Linux VMs, configure VNC socket for guest VNC server
+                config["vnc"] = {
+                    "socket": f"/tmp/vnc-{self.vm_name}.sock"
+                }
+                
+                # Configure VNC display for Xvfb integration
+                if "display" in vnc_config:
+                    config["vnc"]["display"] = vnc_config["display"]
         
         # Add VSOCK for guest agent communication
         if vm_config.get("guest_agent", {}).get("enabled", False):

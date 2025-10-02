@@ -1,0 +1,350 @@
+# Web Automation Template - Optimized for browser automation and web scraping
+# Full desktop environment with browsers and automation tools
+
+web_automation:
+  # Higher resources for browser workloads
+  vcpus: 4
+  memory_mb: 6144
+  
+  # Linux kernel and filesystem
+  kernel: "images/linux/vmlinux.bin"
+  rootfs: "images/linux/web-automation-rootfs.ext4"
+  
+  # Boot configuration with desktop support
+  boot_args: "console=ttyS0 reboot=k panic=1 root=/dev/vda rw init=/sbin/init"
+  
+  # Guest agent for automation commands
+  guest_agent:
+    enabled: true
+    port: 8080
+    auto_start: true
+  
+  # VNC server for visual automation
+  vnc_server:
+    enabled: true
+    port: 5901
+    password: null  # Auto-generated
+    resolution: "1920x1080"
+    color_depth: 24
+    desktop_environment: "xfce4"
+  
+  # Networking with internet access for web automation
+  network:
+    enabled: true
+    bridge: "chbr0"
+    ip_allocation: "dhcp"
+    internet_access: true
+    port_forwarding:
+      - host_port: 8080  # Guest agent
+        guest_port: 8080
+      - host_port: 5901  # VNC
+        guest_port: 5901
+      - host_port: 9222  # Chrome DevTools
+        guest_port: 9222
+      - host_port: 4444  # Selenium Grid
+        guest_port: 4444
+  
+  # Desktop environment and browser packages
+  preinstalled_packages:
+    # Desktop environment
+    - xfce4
+    - xfce4-goodies
+    - x11vnc
+    - xvfb
+    - fluxbox  # Lightweight alternative
+    
+    # Browsers and drivers
+    - chromium-browser
+    - firefox
+    - firefox-esr
+    - google-chrome-stable
+    - chromium-chromedriver
+    - firefox-geckodriver
+    
+    # Python and development tools
+    - python3.11
+    - python3.11-pip
+    - python3.11-venv
+    - nodejs
+    - npm
+    - git
+    - curl
+    - wget
+    - unzip
+    
+    # System tools
+    - htop
+    - tmux
+    - screen
+    - vim
+    - nano
+    
+    # Fonts for proper rendering
+    - fonts-liberation
+    - fonts-dejavu
+    - fonts-noto
+    - fonts-roboto
+    
+    # Media codecs
+    - ubuntu-restricted-extras
+    - ffmpeg
+    - imagemagick
+    
+    # Network tools
+    - net-tools
+    - dnsutils
+    - traceroute
+    - tcpdump
+    - nmap
+  
+  # Python packages for web automation
+  python_packages:
+    # Browser automation
+    - selenium
+    - playwright
+    - pyppeteer
+    - requests-html
+    - mechanicalsoup
+    
+    # Web scraping
+    - beautifulsoup4
+    - scrapy
+    - lxml
+    - html5lib
+    - selectolax
+    
+    # HTTP libraries
+    - requests
+    - httpx
+    - aiohttp
+    - urllib3
+    
+    # Data processing
+    - pandas
+    - numpy
+    - json5
+    - pyyaml
+    - openpyxl
+    - csv
+    
+    # Image and document processing
+    - pillow
+    - opencv-python
+    - pytesseract
+    - pypdf2
+    - python-docx
+    
+    # Testing and debugging
+    - pytest
+    - pytest-selenium
+    - pytest-playwright
+    - allure-pytest
+    
+    # Async and concurrency
+    - asyncio
+    - aiofiles
+    - concurrent-futures
+    
+    # Utilities
+    - python-dateutil
+    - pytz
+    - click
+    - tqdm
+    - colorama
+    - rich
+    - fake-useragent
+    - user-agent
+    
+    # API and web frameworks (for testing)
+    - fastapi
+    - flask
+    - django
+    - uvicorn
+    
+    # Database connectivity
+    - sqlalchemy
+    - sqlite3
+    - psycopg2-binary
+    - pymongo
+  
+  # Node.js packages for JavaScript automation
+  npm_packages:
+    - "puppeteer"
+    - "playwright"
+    - "@playwright/test"
+    - "selenium-webdriver"
+    - "webdriverio"
+    - "cypress"
+    - "cheerio"
+    - "jsdom"
+    - "axios"
+    - "node-fetch"
+    - "lodash"
+    - "moment"
+    - "sharp"
+    - "jimp"
+    - "pdf-parse"
+    - "xlsx"
+    - "csv-parser"
+    - "jest"
+    - "mocha"
+    - "chai"
+    - "typescript"
+    - "ts-node"
+    - "@types/node"
+  
+  # Desktop applications for automation
+  desktop_applications:
+    - code  # Visual Studio Code
+    - postman
+    - insomnia
+    - wireshark
+    - burpsuite-community
+  
+  # Browser configurations
+  browser_configs:
+    chrome:
+      # Chrome flags for automation
+      flags:
+        - "--no-sandbox"
+        - "--disable-dev-shm-usage"
+        - "--disable-gpu"
+        - "--disable-extensions"
+        - "--disable-plugins"
+        - "--disable-images"  # Optional for faster loading
+        - "--remote-debugging-port=9222"
+      
+      # Chrome extensions for automation
+      extensions:
+        - "Selenium IDE"
+        - "Web Developer"
+        - "JSONView"
+        - "XPath Helper"
+    
+    firefox:
+      # Firefox preferences for automation
+      preferences:
+        "dom.webdriver.enabled": false
+        "useAutomationExtension": false
+        "general.platform.override": "Linux x86_64"
+        "general.useragent.override": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+  
+  # Selenium Grid configuration
+  selenium_grid:
+    enabled: true
+    hub_port: 4444
+    node_port: 5555
+    max_sessions: 5
+    browsers:
+      - chrome
+      - firefox
+  
+  # System services for web automation
+  systemd_services:
+    - guest-agent
+    - xvfb
+    - x11vnc
+    - selenium-hub
+    - selenium-node-chrome
+    - selenium-node-firefox
+  
+  # Performance optimizations for browser workloads
+  performance:
+    hugepages: true
+    balloon: false  # Disabled for consistent browser performance
+    cpu_topology:
+      threads_per_core: 1
+      cores_per_die: 4
+      dies_per_socket: 1
+      sockets: 1
+    
+    # Memory optimizations
+    vm_swappiness: 10
+    transparent_hugepages: "never"
+  
+  # Security settings for web automation
+  security:
+    seccomp: false  # Disabled for browser compatibility
+    iommu: false
+    firewall_rules:
+      - "ACCEPT tcp 22"    # SSH
+      - "ACCEPT tcp 8080"  # Guest agent
+      - "ACCEPT tcp 5901"  # VNC
+      - "ACCEPT tcp 9222"  # Chrome DevTools
+      - "ACCEPT tcp 4444"  # Selenium Grid
+      - "ACCEPT tcp 80"    # HTTP
+      - "ACCEPT tcp 443"   # HTTPS
+      - "ACCEPT tcp 53"    # DNS
+      - "ACCEPT udp 53"    # DNS
+      - "DROP all"
+  
+  # Environment variables for web automation
+  environment:
+    DISPLAY: ":99"
+    SCREEN_WIDTH: "1920"
+    SCREEN_HEIGHT: "1080"
+    SCREEN_DEPTH: "24"
+    PYTHONPATH: "/opt/web-automation:/usr/local/lib/python3.11/site-packages"
+    NODE_PATH: "/usr/local/lib/node_modules"
+    
+    # Browser environment
+    CHROME_BIN: "/usr/bin/chromium-browser"
+    FIREFOX_BIN: "/usr/bin/firefox"
+    GECKODRIVER_PATH: "/usr/bin/geckodriver"
+    CHROMEDRIVER_PATH: "/usr/bin/chromedriver"
+    
+    # Selenium configuration
+    SELENIUM_HUB_URL: "http://localhost:4444/wd/hub"
+    
+    # User agent rotation
+    ROTATE_USER_AGENT: "true"
+    DEFAULT_USER_AGENT: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+  
+  # Custom initialization scripts
+  init_scripts:
+    - "/opt/web-automation/scripts/setup-xvfb.sh"
+    - "/opt/web-automation/scripts/setup-browsers.sh"
+    - "/opt/web-automation/scripts/setup-selenium-grid.sh"
+    - "/opt/web-automation/scripts/configure-browser-automation.sh"
+  
+  # Proxy and network configuration
+  proxy_config:
+    enabled: false
+    http_proxy: null
+    https_proxy: null
+    no_proxy: "localhost,127.0.0.1"
+  
+  # Download and upload directories
+  directories:
+    downloads: "/home/automation/downloads"
+    uploads: "/home/automation/uploads"
+    screenshots: "/home/automation/screenshots"
+    reports: "/home/automation/reports"
+    temp: "/tmp/automation"
+  
+  # Metadata for web automation identification
+  metadata:
+    template_version: "1.0.0"
+    created_for: "web-automation"
+    optimized_for:
+      - "browser-automation"
+      - "web-scraping"
+      - "selenium-testing"
+      - "playwright-automation"
+      - "visual-testing"
+    supports:
+      - "chrome-automation"
+      - "firefox-automation"
+      - "selenium-grid"
+      - "playwright"
+      - "puppeteer"
+      - "desktop-interaction"
+      - "screenshot-capture"
+      - "video-recording"
+    features:
+      - "headless-browsing"
+      - "full-desktop-environment"
+      - "vnc-access"
+      - "multiple-browsers"
+      - "selenium-grid"
+      - "automated-testing"

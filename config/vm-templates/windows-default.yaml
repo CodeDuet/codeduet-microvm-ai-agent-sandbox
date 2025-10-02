@@ -68,6 +68,14 @@ windows_default:
     port: 8080
     transport: "virtio-serial"
   
+  # VNC server configuration (hypervisor console)
+  vnc_server:
+    enabled: false  # Set to true to enable VNC access
+    port: 5900      # VNC port (5900 = display :0)
+    resolution: "1024x768"
+    color_depth: 16
+    performance_mode: "balanced"  # speed, balanced, quality
+  
   # Resource limits
   resource_limits:
     max_vcpus: 8

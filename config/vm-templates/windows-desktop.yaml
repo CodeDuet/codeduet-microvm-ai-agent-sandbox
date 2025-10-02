@@ -1,0 +1,271 @@
+# Windows Desktop Template - Optimized for VNC/GUI access and visual AI agents
+# Enhanced Windows environment with desktop automation capabilities
+
+windows_desktop:
+  # Enhanced resources for desktop workloads
+  vcpus: 6
+  memory_mb: 4096
+  
+  # Windows boot configuration
+  firmware: "images/windows/OVMF.fd"
+  disk: "images/windows/windows-desktop.qcow2"
+  disk_format: "qcow2"
+  cdrom: "images/windows/virtio-win.iso"
+  
+  # Boot configuration
+  boot:
+    order: ["disk", "cdrom"]
+    secure_boot: false
+  
+  # Enhanced device configuration for desktop use
+  devices:
+    # High-performance block devices
+    block:
+      - path: "images/windows/windows-desktop.qcow2"
+        format: "qcow2"
+        interface: "virtio"
+        cache: "writeback"  # Better performance for desktop
+        direct: false
+        aio: "threads"
+      - path: "images/windows/virtio-win.iso"
+        format: "raw"
+        interface: "ide"
+        read_only: true
+    
+    # Enhanced network interface
+    network:
+      interface: "virtio-net"
+      multiqueue: true
+      packed: true
+      offloads: true
+    
+    # Serial console for debugging
+    serial:
+      enabled: true
+      mode: "pty"
+    
+    # RNG device for Windows
+    rng:
+      enabled: true
+      source: "/dev/urandom"
+    
+    # Audio support for desktop
+    audio:
+      enabled: true
+      driver: "hda"
+    
+    # USB support for peripherals
+    usb:
+      enabled: true
+      version: "3.0"
+  
+  # VNC server configuration (hypervisor console) - ENABLED by default
+  vnc_server:
+    enabled: true
+    port: 5901          # Use port 5901 to avoid conflicts
+    resolution: "1920x1080"
+    color_depth: 24
+    performance_mode: "quality"
+    
+    # Windows-specific VNC settings
+    cursor_encoding: true
+    desktop_resize: true
+    clipboard_sync: false  # Disabled for security
+  
+  # Performance optimizations for desktop workloads
+  performance:
+    cpu_topology:
+      threads_per_core: 2  # Enable hyperthreading for desktop
+      cores_per_die: 3
+      dies_per_socket: 1
+      sockets: 1
+    
+    # Memory configuration
+    hugepages: false      # Windows doesn't benefit much from hugepages
+    balloon: false        # Disable for desktop stability
+    memory_hotplug: false # Disable for desktop stability
+    
+    # CPU features
+    cpu_features:
+      - "host"            # Pass through host CPU features
+      - "+vmx"            # Enable nested virtualization if supported
+    
+    # I/O optimizations
+    io_uring: false       # Not supported on Windows
+    vhost_user: false     # Use kernel networking for stability
+  
+  # Security settings (relaxed for desktop compatibility)
+  security:
+    seccomp: false        # Windows doesn't support seccomp
+    iommu: false         # Disabled for compatibility
+    readonly_rootfs: false
+    
+    # Windows-specific security
+    tpm: false           # Disable TPM for now
+    secure_boot: false   # Disabled for compatibility
+  
+  # Enhanced network configuration
+  network:
+    enabled: true
+    bridge: "chbr0"
+    mac: "52:54:00:12:34:58"  # Unique MAC for Windows licensing
+    ip_allocation: "dhcp"
+    mtu: 1500
+    
+    # Port forwarding for services
+    port_forwarding:
+      - host_port: 3389    # RDP (if enabled)
+        guest_port: 3389
+        protocol: "tcp"
+      - host_port: 5901    # VNC
+        guest_port: 5901
+        protocol: "tcp"
+      - host_port: 8080    # Guest agent
+        guest_port: 8080
+        protocol: "tcp"
+  
+  # Guest agent configuration
+  guest_agent:
+    enabled: true
+    port: 8080
+    transport: "virtio-serial"
+    auto_start: true
+    
+    # Windows-specific features
+    features:
+      - "desktop-automation"
+      - "screenshot-capture"
+      - "file-transfer"
+      - "process-management"
+      - "registry-access"
+  
+  # Windows-specific services and applications
+  windows_features:
+    # Core Windows features
+    - "IIS-WebServerRole"
+    - "IIS-WebServer"
+    - "IIS-CommonHttpFeatures"
+    - "IIS-HttpErrors"
+    - "IIS-HttpLogging"
+    - "Microsoft-Windows-Subsystem-Linux"  # WSL support
+    
+    # Development tools
+    installed_software:
+      - name: "PowerShell 7"
+        version: "latest"
+      - name: "Windows Terminal"
+        version: "latest"
+      - name: "Git for Windows"
+        version: "latest"
+      - name: "Python 3.11"
+        version: "3.11.x"
+      - name: "Node.js LTS"
+        version: "lts"
+      - name: "Visual Studio Code"
+        version: "latest"
+      - name: "Google Chrome"
+        version: "latest"
+      - name: "Firefox"
+        version: "latest"
+      - name: "7-Zip"
+        version: "latest"
+      - name: "Notepad++"
+        version: "latest"
+  
+  # Windows configuration
+  windows_config:
+    # Power settings optimized for VM
+    power_plan: "High Performance"
+    
+    # Display settings
+    display:
+      scaling: 100
+      resolution: "1920x1080"
+      refresh_rate: 60
+    
+    # User account configuration
+    user_accounts:
+      - username: "admin"
+        password: "auto-generated"  # Will be generated during setup
+        groups: ["Administrators"]
+      - username: "user"
+        password: "auto-generated"
+        groups: ["Users"]
+    
+    # Windows Update settings
+    windows_update:
+      auto_update: false  # Disabled for stability
+      download_updates: false
+    
+    # Registry tweaks for VNC performance
+    registry_tweaks:
+      - key: "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server"
+        value: "fDenyTSConnections"
+        type: "DWORD"
+        data: 0
+      - key: "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp"
+        value: "UserAuthentication"
+        type: "DWORD"
+        data: 0
+  
+  # Resource limits
+  resource_limits:
+    max_vcpus: 8
+    max_memory_mb: 8192
+    max_disk_gb: 100
+    
+    # Performance monitoring
+    cpu_quota: 80        # 80% CPU quota
+    memory_limit: 90     # 90% memory limit
+    io_limit: 1000       # 1000 IOPS limit
+  
+  # Environment variables for automation
+  environment:
+    COMPUTERNAME: "WINDOWS-DESKTOP"
+    PATH: "%PATH%;C:\\Program Files\\Git\\bin;C:\\Program Files\\Python311;C:\\Program Files\\nodejs"
+    TEMP: "C:\\temp"
+    TMP: "C:\\temp"
+    
+    # Automation-specific variables
+    AUTOMATION_MODE: "true"
+    VNC_ENABLED: "true"
+    GUEST_AGENT_PORT: "8080"
+  
+  # Startup scripts
+  startup_scripts:
+    - "C:\\scripts\\setup-desktop.ps1"
+    - "C:\\scripts\\configure-automation.ps1"
+    - "C:\\scripts\\start-services.ps1"
+  
+  # Metadata for identification
+  metadata:
+    template_version: "1.0.0"
+    created_for: "windows-desktop-automation"
+    optimized_for:
+      - "vnc-access"
+      - "desktop-automation"
+      - "visual-ai-agents"
+      - "windows-applications"
+      - "browser-automation"
+    supports:
+      - "windows-11"
+      - "windows-10"
+      - "vnc-console"
+      - "hypervisor-vnc"
+      - "desktop-gui"
+      - "automation-apis"
+    features:
+      - "full-desktop-environment"
+      - "development-tools"
+      - "web-browsers"
+      - "automation-support"
+      - "high-performance-graphics"
+    applications:
+      - "powershell"
+      - "cmd"
+      - "vscode"
+      - "chrome"
+      - "firefox"
+      - "git"
+      - "python"
+      - "nodejs"

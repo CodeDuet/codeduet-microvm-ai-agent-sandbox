@@ -14,11 +14,354 @@
 ✅ **Phase 4 Week 11: Deployment and Scaling - COMPLETED**
 ✅ **Phase 4 Week 12: Testing and Documentation - COMPLETED**
 
-🎉 **PROJECT COMPLETE**: All phases implemented and validated
+🎉 **CORE PROJECT COMPLETE**: All phases implemented and validated
 
 **Final Status**: Production-ready MicroVM Sandbox with enterprise-grade features
 **Test Coverage**: 144 core unit tests + comprehensive integration and performance tests
 **Documentation**: Complete API reference + deployment guides for Docker, Kubernetes, and bare metal
+
+## 🤖 Phase 5: AI Agent Integration (Weeks 13-16) 🆕 **PLANNED**
+
+**Goal**: Transform the MicroVM sandbox into a complete AI agent execution environment
+
+### AI Integration Architecture
+
+Building upon the existing enterprise MicroVM foundation to create the ultimate AI agent sandbox:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    AI Agent Integration Layer                    │
+├─────────────────┬───────────────────┬───────────────────────────┤
+│   Python SDK    │    MCP Server     │    AI Framework Bridge    │
+│   (py-microvm)  │  (Claude/Cursor)  │   (LangChain/OpenAI)     │
+└─────────┬───────┴─────────┬─────────┴───────────┬───────────────┘
+          │ REST API        │ MCP Protocol        │ Agent APIs
+          └─────────────────┼─────────────────────┼─────────────────
+                           │                     │
+          ┌─────────────────┼─────────────────────┼─────────────────┐
+          │         Existing MicroVM Foundation (Phases 1-4)        │
+          │    FastAPI • Security • Monitoring • Deployment        │
+          └─────────────────┬─────────────────────┬─────────────────┘
+                           │ Enhanced with       │
+          ┌─────────────────┼─────────────────────┼─────────────────┐
+          │   VNC/GUI       │  Agent Snapshots    │  Computer Use   │
+          │   Support       │  & Backtracking     │   Capabilities  │
+          └─────────────────┴─────────────────────┴─────────────────┘
+```
+
+#### Week 13: Python SDK Development ✨
+**Goal**: Create py-microvm SDK similar to py-arrakis but with enterprise features
+
+**Deliverables:**
+- [ ] **SDK Architecture Design**
+  - Context manager support (`with sandbox_manager.start_vm()`)
+  - Async/await support for concurrent agent operations
+  - Type hints and Pydantic models for all interfaces
+  - Enterprise security integration (JWT, RBAC)
+
+- [ ] **Core SDK Implementation**
+  ```python
+  # src/sdk/microvm_sdk.py
+  class MicroVMManager:
+      async def start_sandbox(name: str, template: str = "ai-agent") -> Sandbox
+      async def list_sandboxes() -> List[SandboxInfo]
+      async def get_sandbox(name: str) -> Sandbox
+  
+  class Sandbox:
+      async def run_command(cmd: str, timeout: int = 30) -> CommandResult
+      async def upload_file(local_path: str, remote_path: str) -> None
+      async def download_file(remote_path: str, local_path: str) -> None
+      async def snapshot(name: str) -> SnapshotInfo
+      async def restore(snapshot_id: str) -> None
+      async def get_vnc_info() -> VNCInfo
+      def destroy() -> None
+  ```
+
+- [ ] **AI-Optimized VM Templates**
+  ```yaml
+  # config/vm-templates/ai-agent.yaml
+  ai_agent:
+    vcpus: 4
+    memory_mb: 4096
+    kernel: "images/linux/vmlinux.bin" 
+    rootfs: "images/linux/ai-agent-rootfs.ext4"
+    boot_args: "console=ttyS0 reboot=k panic=1"
+    guest_agent:
+      enabled: true
+      port: 8080
+    vnc_server:
+      enabled: true
+      port: 5901
+    preinstalled_packages:
+      - python3.11
+      - nodejs
+      - chrome-browser
+      - code-server
+      - git
+  ```
+
+- [ ] **SDK Testing & Documentation**
+  - Comprehensive unit tests for all SDK methods
+  - Integration tests with real VMs
+  - API documentation with examples
+  - PyPI package preparation
+
+#### Week 14: MCP Server Implementation 🔗
+**Goal**: Create Model Context Protocol server for seamless AI client integration
+
+**Deliverables:**
+- [ ] **MCP Server Core**
+  ```python
+  # src/mcp/server.py
+  class MicroVMMCPServer:
+      # MCP tools for AI clients
+      async def create_sandbox(args: dict) -> dict
+      async def execute_code(args: dict) -> dict  
+      async def upload_file(args: dict) -> dict
+      async def snapshot_sandbox(args: dict) -> dict
+      async def restore_sandbox(args: dict) -> dict
+      async def get_vnc_connection(args: dict) -> dict
+      async def destroy_sandbox(args: dict) -> dict
+      
+      # OpenAI Codex integration
+      async def codex_execute(args: dict) -> dict
+      async def codex_analyze_code(args: dict) -> dict
+      async def codex_generate_tests(args: dict) -> dict
+  ```
+
+- [ ] **OpenAI Codex Integration**
+  ```python
+  # src/mcp/codex_integration.py
+  import openai
+  from typing import Dict, Any
+  
+  class CodexMicroVMIntegration:
+      """OpenAI Codex integration for intelligent code execution"""
+      
+      def __init__(self, api_key: str, sandbox_manager: MicroVMManager):
+          self.client = openai.OpenAI(api_key=api_key)
+          self.sandbox_manager = sandbox_manager
+          
+      async def codex_execute_with_context(self, prompt: str, language: str = "python") -> Dict[str, Any]:
+          """Generate and execute code using Codex in MicroVM"""
+          
+          # Generate code using Codex
+          response = await self.client.chat.completions.create(
+              model="gpt-4-turbo",  # or codex-davinci-002 when available
+              messages=[
+                  {"role": "system", "content": f"Generate {language} code to solve the following problem. Only return executable code."},
+                  {"role": "user", "content": prompt}
+              ],
+              max_tokens=1000,
+              temperature=0.1
+          )
+          
+          generated_code = response.choices[0].message.content
+          
+          # Execute in MicroVM sandbox
+          with self.sandbox_manager.start_sandbox("codex-executor") as sandbox:
+              result = await sandbox.run_command(f"{language} -c '{generated_code}'")
+              
+              return {
+                  "prompt": prompt,
+                  "generated_code": generated_code,
+                  "execution_result": result.output,
+                  "success": result.return_code == 0,
+                  "error": result.stderr if result.return_code != 0 else None
+              }
+              
+      async def codex_analyze_and_fix(self, code: str, error: str) -> Dict[str, Any]:
+          """Analyze error and generate fixed code using Codex"""
+          
+          fix_prompt = f"""
+          The following code produced an error:
+          
+          Code:
+          {code}
+          
+          Error:
+          {error}
+          
+          Please provide a corrected version of the code that fixes this error.
+          """
+          
+          return await self.codex_execute_with_context(fix_prompt)
+          
+      async def codex_generate_tests(self, code: str) -> Dict[str, Any]:
+          """Generate unit tests for code using Codex"""
+          
+          test_prompt = f"""
+          Generate comprehensive unit tests for the following code:
+          
+          {code}
+          
+          Use pytest framework and include edge cases.
+          """
+          
+          return await self.codex_execute_with_context(test_prompt, "python")
+  ```
+
+- [ ] **Claude Desktop Integration**
+  ```json
+  # Installation template: claude_desktop_config.json
+  {
+    "mcpServers": {
+      "microvm-sandbox": {
+        "command": "python",
+        "args": ["-m", "microvm_mcp_server"],
+        "env": {
+          "MICROVM_API_URL": "http://localhost:8000",
+          "MICROVM_API_TOKEN": "your-jwt-token"
+        }
+      }
+    }
+  }
+  ```
+
+- [ ] **Tool Definitions**
+  - MCP tool schema for all sandbox operations
+  - Error handling and validation
+  - Streaming support for long-running commands
+  - Security context propagation
+
+- [ ] **Multi-Client Support**
+  - Cursor IDE integration
+  - Windsurf integration  
+  - VS Code extension compatibility
+  - Generic MCP client support
+
+#### Week 15: GUI/VNC & Computer Use Support 🖥️
+**Goal**: Enable visual AI agents with full desktop environments
+
+**Deliverables:**
+- [ ] **VNC Server Integration**
+  ```python
+  # src/core/vnc_manager.py
+  class VNCManager:
+      async def start_vnc_server(vm_name: str) -> VNCInfo
+      async def setup_port_forwarding(vm_name: str, vnc_port: int) -> int
+      async def get_vnc_connection_info(vm_name: str) -> VNCConnectionInfo
+      async def configure_display_settings(vm_name: str, resolution: str) -> None
+  ```
+
+- [ ] **Desktop Environment Setup**
+  - XFCE desktop environment in VM templates
+  - Chrome browser with automation support
+  - VS Code / development tools
+  - Screenshot and recording capabilities
+
+- [ ] **Computer Use APIs**
+  ```python
+  # Computer use specific methods
+  async def take_screenshot(vm_name: str) -> bytes
+  async def click_coordinate(vm_name: str, x: int, y: int) -> None
+  async def type_text(vm_name: str, text: str) -> None
+  async def scroll_page(vm_name: str, direction: str, amount: int) -> None
+  async def get_screen_resolution(vm_name: str) -> Resolution
+  ```
+
+- [ ] **noVNC Web Interface**
+  - Embedded web-based VNC client
+  - Multi-session support
+  - Mobile-responsive interface
+  - Session recording capabilities
+
+#### Week 16: AI Framework Integration 🧠
+**Goal**: Connect with popular AI frameworks and LLM providers
+
+**Deliverables:**
+- [ ] **LangChain Integration**
+  ```python
+  # src/integrations/langchain_tools.py
+  from langchain.tools import BaseTool
+  
+  class MicroVMSandboxTool(BaseTool):
+      name = "microvm_sandbox"
+      description = "Execute code safely in isolated MicroVM"
+      
+      def _run(self, code: str, language: str = "python") -> str:
+          # Integration with MicroVM SDK
+  
+  class MicroVMComputerUseTool(BaseTool):
+      name = "microvm_computer_use" 
+      description = "Interact with desktop environment"
+      
+      def _run(self, action: str, **kwargs) -> str:
+          # Computer use integration
+  ```
+
+- [ ] **OpenAI/Anthropic Integration**
+  ```python
+  # src/integrations/llm_providers.py
+  class MicroVMExecutionEnvironment:
+      async def execute_with_openai(prompt: str, model: str) -> ExecutionResult
+      async def execute_with_anthropic(prompt: str, model: str) -> ExecutionResult
+      async def execute_with_local_llm(prompt: str, model_path: str) -> ExecutionResult
+  ```
+
+- [ ] **Agent Frameworks Support**
+  - AutoGPT integration
+  - AutoGen multi-agent conversations
+  - crewAI compatibility  
+  - Agent protocol implementation
+  - Multi-agent orchestration support
+
+- [ ] **AutoGen Integration**
+  ```python
+  # src/integrations/autogen_integration.py
+  from autogen import ConversableAgent, GroupChat, GroupChatManager
+  
+  class MicroVMCodeExecutor:
+      """Custom code executor for AutoGen using MicroVM sandbox"""
+      
+      def __init__(self, sandbox_manager: MicroVMManager):
+          self.sandbox_manager = sandbox_manager
+          
+      async def execute_code_blocks(self, code_blocks: List[str]) -> str:
+          """Execute code in isolated MicroVM and return results"""
+          with self.sandbox_manager.start_sandbox("autogen-executor") as sandbox:
+              results = []
+              for code in code_blocks:
+                  result = await sandbox.run_command(f"python3 -c '{code}'")
+                  results.append(result.output)
+              return "\n".join(results)
+  
+  class MicroVMConversableAgent(ConversableAgent):
+      """AutoGen agent with MicroVM code execution capabilities"""
+      
+      def __init__(self, name: str, sandbox_manager: MicroVMManager, **kwargs):
+          super().__init__(name, **kwargs)
+          self.code_executor = MicroVMCodeExecutor(sandbox_manager)
+          
+      async def execute_code(self, code: str) -> str:
+          """Safe code execution in MicroVM"""
+          return await self.code_executor.execute_code_blocks([code])
+  ```
+
+- [ ] **Pre-built Agent Templates**
+  ```yaml
+  # AI agent specific templates
+  code_interpreter_agent:
+    description: "Python code execution with data science stack"
+    packages: [jupyter, pandas, numpy, matplotlib, scipy]
+    
+  web_automation_agent: 
+    description: "Browser automation and web scraping"
+    packages: [selenium, playwright, beautifulsoup4]
+    
+  computer_use_agent:
+    description: "Full desktop interaction capabilities"
+    desktop: xfce
+    applications: [chrome, vscode, gimp, libreoffice]
+  ```
+
+**Phase 5 Deliverables:** 🎯
+- ✅ **Python SDK (py-microvm)** - Enterprise-grade SDK with async support
+- ✅ **MCP Server** - Seamless Claude/Cursor/Windsurf integration  
+- ✅ **VNC/GUI Support** - Full desktop environments for computer use
+- ✅ **AI Framework Bridge** - LangChain, OpenAI, Anthropic integrations
+- ✅ **Pre-built Agent Templates** - Ready-to-use AI agent environments
+- ✅ **Computer Use APIs** - Screen interaction, automation capabilities
 
 ## Overview
 
@@ -689,3 +1032,111 @@ This development plan provided a comprehensive roadmap for building a production
 - **Documentation**: Complete API reference + deployment guides
 
 The MicroVM Sandbox is now production-ready for enterprise environments.
+
+## 📦 Phase 6: PyPI SDK Publication (Week 17) 🆕 **CURRENT**
+
+**Goal**: Publish secure, simplified py-microvm SDK to PyPI for public use
+
+### SDK Publishing Plan (Based on Agent Analysis)
+
+**Current Status**: ❌ **NOT READY** - Critical security and architecture issues identified
+
+#### Assessment Summary from Agent Analysis:
+- **🔴 Security Issues**: Critical vulnerabilities (command injection, path traversal, insecure defaults)
+- **🔴 Code Quality**: 24 mypy errors, 140+ style issues, missing dependencies  
+- **🔴 Architecture**: Over-engineered design violating project simplicity principles
+
+#### Week 17: Complete SDK Rewrite & Publication
+
+**Simplified Architecture Approach:**
+```python
+# Target: <150 lines total implementation
+from microvm_client import MicroVMClient
+
+# Simple, direct API access
+async with MicroVMClient("https://api.microvm.dev") as client:
+    vm = await client.start_vm("ai-agent", {"vcpus": 4})
+    result = await client.exec_command(vm.id, "python --version")
+    await client.upload_file(vm.id, "script.py", "/tmp/script.py")
+    await client.destroy_vm(vm.id)
+```
+
+**Phase 1: Foundation Rebuild (Days 1-3)**
+- [ ] **Critical Security Fixes**
+  - [ ] Input validation framework (prevent command injection)
+  - [ ] Path traversal protection (file operations)
+  - [ ] HTTPS enforcement (secure defaults)
+  - [ ] Secure token handling (encryption)
+  
+- [ ] **Simplified Architecture** 
+  - [ ] Replace 600+ line SDK with 120-line client
+  - [ ] Remove nested context managers (performance)
+  - [ ] Eliminate in-memory state tracking (scalability)
+  - [ ] Direct API mapping vs heavy abstractions
+
+- [ ] **Type Safety & Quality**
+  - [ ] Fix all 24 mypy type errors
+  - [ ] Resolve 140+ flake8 style issues
+  - [ ] Add proper async typing
+  - [ ] Remove unused imports and dependencies
+
+**Phase 2: PyPI Package Creation (Days 4-5)**
+- [ ] **Modern Packaging Structure**
+  ```
+  py-microvm/
+  ├── pyproject.toml      # Modern Python packaging
+  ├── README.md          # PyPI documentation  
+  ├── src/microvm_client/
+  │   ├── __init__.py    # 30 lines: public interface
+  │   ├── client.py      # 120 lines: core implementation
+  │   ├── models.py      # 50 lines: essential models only
+  │   └── exceptions.py  # 20 lines: basic exceptions
+  └── tests/             # Security & functionality tests
+  ```
+
+- [ ] **Security Validation**
+  - [ ] Security scanner validation (bandit, safety)
+  - [ ] Penetration testing of file operations
+  - [ ] Command injection testing
+  - [ ] TLS/HTTPS validation
+
+**Phase 3: Publication (Days 6-7)**
+- [ ] **Quality Gates**
+  - [ ] Zero critical security vulnerabilities
+  - [ ] 100% mypy type checking passed
+  - [ ] 90%+ test coverage
+  - [ ] <150 lines core implementation
+  - [ ] <50ms API response times
+
+- [ ] **PyPI Publication**
+  - [ ] TestPyPI publication and validation
+  - [ ] Community feedback integration  
+  - [ ] Production PyPI release
+  - [ ] Performance benchmarks validation
+
+**Target Package Configuration:**
+```toml
+[project]
+name = "py-microvm"
+version = "1.0.0"
+description = "Lightweight Python client for MicroVM Sandbox"
+dependencies = [
+    "httpx>=0.25.0,<0.26.0",
+    "pydantic>=2.4.0,<3.0.0", 
+    "cryptography>=41.0.0,<42.0.0"
+]
+```
+
+**Success Criteria:**
+- ✅ Zero critical security vulnerabilities
+- ✅ Performance: <100ms API responses, <10MB memory footprint
+- ✅ Code quality: 100% mypy, 90%+ test coverage
+- ✅ Architecture: <150 lines, stateless design
+- ✅ Security audit passed
+
+**Timeline**: 7 days total
+- Days 1-3: Security fixes and architecture simplification
+- Days 4-5: Packaging and testing
+- Days 6-7: Publication and validation
+
+This phase will transform the current over-engineered SDK into a secure, simple, high-performance client aligned with the project's minimalist architecture goals.

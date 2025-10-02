@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "microvm-sandbox": {
+      "command": "python",
+      "args": ["-m", "src.mcp.server"],
+      "env": {
+        "MICROVM_API_URL": "http://localhost:8000",
+        "MICROVM_API_TOKEN": "your-jwt-token-here",
+        "OPENAI_API_KEY": "your-openai-api-key-here"
+      },
+      "cwd": "/path/to/codeduet-microvm-ai-agent-sandbox"
+    }
+  },
+  "globalShortcuts": {
+    "commandPalette": "Cmd+Shift+P"
+  },
+  "homepage": {
+    "markdownContent": "# MicroVM Sandbox Integration\n\nYou now have access to secure MicroVM sandboxes for:\n\n- **Safe code execution** in isolated environments\n- **Web automation** with full browser support\n- **Desktop interaction** through VNC and computer use\n- **Snapshot/restore** for backtracking\n- **Multiple programming languages** (Python, JavaScript, Go, etc.)\n\n## Available Tools\n\n- `create_sandbox` - Create new MicroVM sandbox\n- `execute_code` - Run code safely in sandbox\n- `upload_file` / `download_file` - File transfer\n- `take_screenshot` - Capture desktop\n- `click` / `type_text` / `scroll` - Desktop interaction\n- `create_snapshot` / `restore_snapshot` - Save/restore state\n- `get_vnc_info` - Get visual access\n\n## Quick Start\n\n1. Ask me to create a sandbox: \"Create a Python sandbox for data analysis\"\n2. Execute code: \"Run this Python code in the sandbox\"\n3. Take screenshots: \"Show me what's on the desktop\"\n4. Create snapshots: \"Save the current state as checkpoint\"\n\n## Templates Available\n\n- **ai-agent**: General AI development with Python, Node.js, browsers\n- **code-interpreter**: Secure code execution with multiple languages\n- **web-automation**: Browser automation with Selenium/Playwright\n- **computer-use**: Full desktop environment for GUI interaction\n\nStart by asking me to create a sandbox!"
+  }
+}

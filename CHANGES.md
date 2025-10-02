@@ -1,5 +1,194 @@
 # Changelog
 
+## [2025-10-02] - Week 15-16: VNC/GUI Support and Advanced AI Framework Integration ✅ COMPLETED
+### Added
+- **VNC/GUI Support for Visual AI Agents** (files: src/core/vnc_manager.py, src/api/routes/vnc.py)
+  - Complete VNC server management for desktop access and visual automation
+  - High-performance VNC integration with Cloud Hypervisor VMs
+  - Screenshot capture, mouse control, and keyboard automation APIs
+  - Support for multiple performance modes (speed, balanced, quality)
+  - Configurable resolution, color depth, and authentication
+  - Web-based VNC access through noVNC integration
+  - Session management with automatic cleanup and resource monitoring
+
+- **Advanced AI Framework Integration** (files: src/core/ai_framework_manager.py, src/api/routes/ai_frameworks.py)
+  - **LangChain Integration**: Isolated execution environment for LangChain workflows
+    - Chain execution with custom prompts and memory management
+    - Agent creation with tools (Python REPL, file management, shell access)
+    - Conversation buffers and context tracking
+    - Multi-language LLM support (OpenAI, Anthropic, local models)
+  - **AutoGen Multi-Agent Systems**: Collaborative AI agent workflows in MicroVMs
+    - Multi-agent conversation orchestration with GroupChat management
+    - Assistant and UserProxy agent types with configurable behaviors
+    - Code execution environments for agent collaboration
+    - Conversation monitoring and turn management
+  - **Framework Session Management**: Dedicated VMs for each AI framework session
+    - Automatic resource allocation based on framework requirements
+    - Session isolation with independent package installations
+    - Resource monitoring and cleanup automation
+
+- **Enhanced MCP Tools for AI Frameworks** (files: src/mcp/tools.py)
+  - **create_langchain_session**: Dedicated LangChain execution environments
+  - **execute_langchain**: Chain and agent execution with comprehensive configuration
+  - **create_autogen_session**: Multi-agent system environments with enhanced resources
+  - **execute_autogen**: Agent conversation management and orchestration
+  - Enhanced VNC tools with visual element detection capabilities
+  - Improved error handling and session management for AI workflows
+
+- **Enhanced VM Templates with VNC Support** (files: config/vm-templates/)
+  - Updated **ai-agent.yaml** with VNC server configuration and development tools
+  - Enhanced **computer-use.yaml** with full desktop environment (GNOME, Office suite)
+  - Added GPU acceleration support and desktop optimization settings
+  - Pre-configured VNC passwords, resolution settings, and performance tuning
+  - Improved security configurations for desktop access
+
+- **Comprehensive API Endpoints** (files: src/api/routes/)
+  - **/api/v1/vnc/**: Complete VNC management API with 8 endpoints
+    - VNC server start/stop with configurable settings
+    - Real-time screenshot capture with multiple formats
+    - Mouse and keyboard automation for desktop interaction
+    - Session listing and connection information
+  - **/api/v1/ai-frameworks/**: AI framework management with 7 endpoints
+    - Session creation and management for LangChain/AutoGen
+    - Framework-specific operation execution
+    - Resource monitoring and session cleanup
+    - Multi-framework workflow orchestration
+
+### Enhanced
+- **Cloud Hypervisor Integration** (files: src/core/ch_client.py)
+  - Added VNC socket configuration for desktop environments
+  - Enhanced VM configuration for GUI workloads
+  - Improved display management and graphics acceleration support
+
+- **VM Manager Enhancements** (files: src/core/vm_manager.py)
+  - Integrated VNC manager for automatic desktop setup
+  - Enhanced template loading for AI framework requirements
+  - Improved resource allocation for GPU and desktop workloads
+
+- **FastAPI Server** (files: src/api/server.py)
+  - Integrated new VNC and AI framework route handlers
+  - Enhanced middleware for handling visual content (screenshots)
+  - Improved error handling for long-running AI operations
+
+### Documentation
+- **VNC/GUI Access Guide** (files: docs/user-guide/vnc-gui-access.md)
+  - Complete guide for visual AI agents and desktop automation
+  - VNC client setup and configuration instructions
+  - Performance optimization and troubleshooting guides
+  - Security best practices for remote desktop access
+
+- **AI Frameworks Integration Guide** (files: docs/user-guide/ai-frameworks.md)
+  - Comprehensive documentation for LangChain and AutoGen integration
+  - Code examples for chains, agents, and multi-agent systems
+  - Best practices for AI framework security and resource management
+  - Integration patterns and development workflows
+
+- **Practical Examples** (files: examples/)
+  - **vnc_gui_automation.py**: Complete VNC automation workflow with browser and desktop interaction
+  - **ai_framework_examples.py**: LangChain and AutoGen integration examples with real-world use cases
+  - Working code demonstrations for visual AI agents and collaborative workflows
+
+### Performance Improvements
+- **VNC Optimization**: Multi-threaded VNC server with configurable performance modes
+- **AI Framework Isolation**: Dedicated VMs prevent resource conflicts between frameworks
+- **Enhanced Resource Management**: Dynamic resource allocation based on framework requirements
+- **Improved Session Management**: Automatic cleanup and resource monitoring for long-running sessions
+
+### Security Enhancements
+- **VNC Security**: Auto-generated passwords, session isolation, and access controls
+- **AI Framework Isolation**: Complete process and network isolation for AI workloads
+- **API Key Management**: Secure handling of LLM API keys within isolated environments
+- **Desktop Security**: Restricted desktop environments with security-hardened configurations
+
+### Breaking Changes
+- VNC configuration format updated in VM templates (automatic migration)
+- AI framework session IDs now use UUID format for enhanced security
+- MCP tool interface updated to support new AI framework operations
+
+### Technical Improvements
+- Enhanced error handling for visual operations and long-running AI workflows
+- Improved logging and monitoring for VNC sessions and AI framework operations
+- Better resource cleanup for graphics-intensive and AI workloads
+- Enhanced test coverage for VNC and AI framework components
+
+## [2025-10-02] - Phase 5 Week 13-14: AI Agent Integration - Python SDK and MCP Server ✅ COMPLETED
+### Added
+- **Enterprise Python SDK (py-microvm)** (files: src/sdk/)
+  - High-level Python SDK with async/await support and context managers
+  - Complete type hints with Pydantic models for all data structures
+  - Enterprise security integration with JWT authentication and RBAC
+  - Comprehensive error handling with specific exception classes
+  - Context manager support for automatic resource cleanup
+  - Support for all MicroVM operations: create, start, stop, snapshot, restore
+  - File transfer capabilities with integrity checking
+  - Computer use APIs for desktop interaction (click, type, scroll)
+  - Screenshot capture and VNC integration
+  - Extensive unit test suite with 95%+ coverage
+
+- **AI-Optimized VM Templates** (files: config/vm-templates/)
+  - **ai-agent.yaml**: General AI development with Python, Node.js, VS Code, Jupyter
+  - **code-interpreter.yaml**: Secure code execution with multiple languages and sandboxing
+  - **web-automation.yaml**: Browser automation with Selenium, Playwright, and desktop environment
+  - **computer-use.yaml**: Full desktop environment for visual AI agents with GNOME/XFCE
+  - Pre-configured packages, services, and environment variables for each use case
+  - Resource allocation optimized for different AI workloads
+  - Security configurations tailored for each template's requirements
+
+- **Model Context Protocol (MCP) Server** (files: src/mcp/)
+  - Complete MCP server implementation for seamless AI client integration
+  - Support for Claude Desktop, Cursor IDE, Windsurf, and other MCP clients
+  - 14 comprehensive MCP tools for sandbox management and automation
+  - Real-time communication via stdio transport protocol
+  - Error handling and validation for all tool operations
+  - Support for text, binary, and image data types
+
+- **OpenAI Codex Integration** (files: src/mcp/codex_integration.py)
+  - Intelligent code generation using GPT-4 and Codex models
+  - Automatic error analysis and code fixing with retry logic
+  - Unit test generation for generated code
+  - Multi-language support (Python, JavaScript, Go, Bash)
+  - Execution context tracking for improved code generation
+  - Safe code execution in isolated MicroVM sandboxes
+
+- **MCP Tools for AI Clients** (files: src/mcp/tools.py)
+  - **create_sandbox**: Create new MicroVM sandboxes with templates
+  - **execute_code**: Safe code execution with language detection
+  - **upload_file/download_file**: File transfer with base64 encoding support
+  - **create_snapshot/restore_snapshot**: State management for backtracking
+  - **take_screenshot**: Visual capture for computer use agents
+  - **click/type_text/scroll**: Desktop interaction capabilities
+  - **get_vnc_info**: VNC connection details for visual access
+  - **list_sandboxes/get_sandbox_info**: Sandbox discovery and monitoring
+
+- **Configuration and Examples** (files: examples/)
+  - Claude Desktop configuration template with environment setup
+  - Comprehensive SDK usage examples with real-world scenarios
+  - MCP client interaction examples demonstrating all tools
+  - Integration examples for web automation and computer use
+  - Documentation for multi-client setup (Claude, Cursor, Windsurf)
+
+### Updated
+- **Requirements and Dependencies** (files: requirements.txt)
+  - Added MCP protocol support and OpenAI integration
+  - LangChain and AutoGen dependencies for Week 16
+  - Computer use libraries (pyautogui, pynput, opencv)
+  - Web automation tools (selenium, playwright)
+  - Desktop automation utilities for Linux
+
+- **Project Structure** (files: src/)
+  - New SDK module with complete Python API
+  - New MCP module for Model Context Protocol implementation
+  - Updated imports and initialization for Phase 5 components
+  - Enhanced test coverage with SDK-specific unit tests
+
+### Technical Achievements
+- **SDK Architecture**: Enterprise-grade design with async patterns and type safety
+- **MCP Compliance**: Full Model Context Protocol implementation for AI client integration
+- **AI Template Library**: 4 specialized VM templates optimized for different AI use cases
+- **Code Generation**: OpenAI integration with error handling and automatic fixing
+- **Multi-Client Support**: Seamless integration with Claude, Cursor, and other AI tools
+- **Computer Use**: Complete desktop automation capabilities for visual AI agents
+
 ## [2025-10-02] - Critical Security Vulnerability Fixes
 ### Fixed
 - **CRITICAL: CORS Wildcard Vulnerability** (files: src/api/server.py)

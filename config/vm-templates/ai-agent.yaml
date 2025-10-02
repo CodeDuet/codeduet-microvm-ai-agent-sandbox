@@ -1,0 +1,211 @@
+# AI Agent Template - Optimized for AI code execution and automation
+# High-performance environment with development tools and runtime environments
+
+ai_agent:
+  # Resource allocation optimized for AI workloads
+  vcpus: 4
+  memory_mb: 4096
+  
+  # Linux kernel and filesystem
+  kernel: "images/linux/vmlinux.bin"
+  rootfs: "images/linux/ai-agent-rootfs.ext4"
+  
+  # Optimized boot configuration for fast startup
+  boot_args: "console=ttyS0 reboot=k panic=1 pci=off nomodules 8250.nr_uarts=1 root=/dev/vda rw init=/sbin/init"
+  
+  # Guest agent for host-guest communication
+  guest_agent:
+    enabled: true
+    port: 8080
+    auto_start: true
+  
+  # VNC server for visual AI agents
+  vnc_server:
+    enabled: true
+    port: 5901
+    password: null  # Will be auto-generated
+    resolution: "1920x1080"
+    color_depth: 24
+  
+  # Networking configuration
+  network:
+    enabled: true
+    bridge: "chbr0"
+    ip_allocation: "dhcp"
+    port_forwarding:
+      - host_port: 8080  # Guest agent
+        guest_port: 8080
+      - host_port: 5901  # VNC
+        guest_port: 5901
+      - host_port: 3000  # Development server
+        guest_port: 3000
+      - host_port: 8888  # Jupyter
+        guest_port: 8888
+  
+  # Pre-installed software packages for AI development
+  preinstalled_packages:
+    # Python ecosystem
+    - python3.11
+    - python3.11-pip
+    - python3.11-venv
+    - python3.11-dev
+    
+    # Node.js ecosystem
+    - nodejs
+    - npm
+    
+    # Development tools
+    - git
+    - curl
+    - wget
+    - vim
+    - nano
+    - htop
+    - tmux
+    - screen
+    
+    # Browsers for web automation
+    - chromium-browser
+    - firefox
+    
+    # Visual Studio Code Server
+    - code-server
+    
+    # Development libraries
+    - build-essential
+    - cmake
+    - pkg-config
+    - libssl-dev
+    - libffi-dev
+    - libbz2-dev
+    - libreadline-dev
+    - libsqlite3-dev
+    - libncurses5-dev
+    - libgdbm-dev
+    - libnss3-dev
+    - liblzma-dev
+  
+  # Python packages for AI and data science
+  python_packages:
+    # Core AI/ML libraries
+    - numpy
+    - pandas
+    - scikit-learn
+    - matplotlib
+    - seaborn
+    - plotly
+    - jupyter
+    - notebook
+    - jupyterlab
+    
+    # Deep learning
+    - torch
+    - tensorflow
+    - transformers
+    - datasets
+    
+    # API and web frameworks
+    - fastapi
+    - uvicorn
+    - requests
+    - httpx
+    - aiohttp
+    
+    # Code execution and automation
+    - subprocess32
+    - pexpect
+    - paramiko
+    - fabric
+    
+    # Browser automation
+    - selenium
+    - playwright
+    - beautifulsoup4
+    - scrapy
+    
+    # Document processing
+    - python-docx
+    - openpyxl
+    - pypdf2
+    - markdown
+    
+    # Development tools
+    - black
+    - flake8
+    - mypy
+    - pytest
+    - poetry
+    - pipenv
+  
+  # Node.js packages for development
+  npm_packages:
+    - "@types/node"
+    - "typescript"
+    - "ts-node"
+    - "nodemon"
+    - "express"
+    - "axios"
+    - "puppeteer"
+    - "playwright"
+    - "lodash"
+    - "moment"
+    - "dotenv"
+  
+  # System services to start on boot
+  systemd_services:
+    - guest-agent
+    - code-server
+    - jupyter-lab
+  
+  # Performance optimizations
+  performance:
+    hugepages: true
+    balloon: true
+    cpu_topology:
+      threads_per_core: 1
+      cores_per_die: 4
+      dies_per_socket: 1
+      sockets: 1
+  
+  # Security settings
+  security:
+    seccomp: true
+    iommu: false  # Disabled for AI workloads
+    firewall_rules:
+      - "ACCEPT tcp 22"    # SSH
+      - "ACCEPT tcp 8080"  # Guest agent
+      - "ACCEPT tcp 5901"  # VNC
+      - "ACCEPT tcp 3000"  # Dev server
+      - "ACCEPT tcp 8888"  # Jupyter
+      - "DROP all"
+  
+  # Environment variables for AI development
+  environment:
+    PYTHONPATH: "/opt/ai-agent:/usr/local/lib/python3.11/site-packages"
+    NODE_PATH: "/usr/local/lib/node_modules"
+    JUPYTER_ENABLE_LAB: "yes"
+    CODE_SERVER_PASSWORD: "ai-agent-dev"
+    DISPLAY: ":0"
+  
+  # Custom initialization scripts
+  init_scripts:
+    - "/opt/ai-agent/scripts/setup-jupyter.sh"
+    - "/opt/ai-agent/scripts/setup-code-server.sh"
+    - "/opt/ai-agent/scripts/setup-browser-automation.sh"
+  
+  # Metadata for AI agent identification
+  metadata:
+    template_version: "1.0.0"
+    created_for: "ai-agent-execution"
+    optimized_for:
+      - "code-generation"
+      - "web-automation" 
+      - "data-analysis"
+      - "api-development"
+    supports:
+      - "python"
+      - "nodejs"
+      - "browser-automation"
+      - "visual-interaction"
+      - "jupyter-notebooks"
+      - "vscode-development"

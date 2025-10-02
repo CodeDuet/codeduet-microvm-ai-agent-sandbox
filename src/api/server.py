@@ -8,7 +8,7 @@ from src.utils.logging import setup_logging
 from src.utils.config import get_settings
 from src.utils.metrics import MetricsCollector, metrics
 from src.utils.database import get_database_service, close_database_service
-from src.api.routes import vms, system, snapshots, network, guest, resources, health, cluster
+from src.api.routes import vms, system, snapshots, network, guest, resources, health, cluster, vnc, ai_frameworks
 from src.api.middleware.logging import LoggingMiddleware
 
 
@@ -65,6 +65,8 @@ app.include_router(guest.router, prefix="/api/v1", tags=["Guest"])
 app.include_router(resources.router, tags=["Resources"])
 app.include_router(health.router, prefix="/api/v1", tags=["Health"])
 app.include_router(cluster.router, prefix="/api/v1", tags=["Cluster"])
+app.include_router(vnc.router, prefix="/api/v1", tags=["VNC"])
+app.include_router(ai_frameworks.router, prefix="/api/v1", tags=["AI Frameworks"])
 
 
 @app.get("/")

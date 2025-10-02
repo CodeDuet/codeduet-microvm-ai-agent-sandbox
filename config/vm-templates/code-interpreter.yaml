@@ -1,0 +1,298 @@
+# Code Interpreter Template - Specialized for code execution and analysis
+# Optimized for running user-generated code safely with comprehensive tooling
+
+code_interpreter:
+  # Conservative resource allocation for code execution
+  vcpus: 2
+  memory_mb: 2048
+  
+  # Linux kernel and filesystem
+  kernel: "images/linux/vmlinux.bin"
+  rootfs: "images/linux/code-interpreter-rootfs.ext4"
+  
+  # Fast boot for quick code execution sessions
+  boot_args: "console=ttyS0 reboot=k panic=1 pci=off nomodules 8250.nr_uarts=1 root=/dev/vda rw"
+  
+  # Guest agent for code execution
+  guest_agent:
+    enabled: true
+    port: 8080
+    auto_start: true
+    timeout: 300  # 5 minutes for long-running code
+  
+  # Minimal VNC (disabled by default for security)
+  vnc_server:
+    enabled: false
+    port: 5901
+  
+  # Restricted networking for security
+  network:
+    enabled: true
+    bridge: "chbr0"
+    ip_allocation: "dhcp"
+    port_forwarding:
+      - host_port: 8080  # Guest agent only
+        guest_port: 8080
+  
+  # Core development packages
+  preinstalled_packages:
+    # Multiple Python versions
+    - python3.9
+    - python3.10
+    - python3.11
+    - python3.12
+    - python3.9-pip
+    - python3.10-pip
+    - python3.11-pip
+    - python3.12-pip
+    
+    # Programming languages
+    - nodejs
+    - openjdk-17-jdk
+    - golang-go
+    - rustc
+    - gcc
+    - g++
+    - make
+    - cmake
+    
+    # Interpreters and runtimes
+    - ruby
+    - php
+    - lua5.4
+    - perl
+    
+    # Development tools
+    - git
+    - vim
+    - nano
+    - curl
+    - wget
+    - jq
+    - yq
+    - tree
+    - file
+    - strace
+    - ltrace
+    
+    # System monitoring
+    - htop
+    - iotop
+    - nethogs
+    - tcpdump
+    
+    # Database clients
+    - sqlite3
+    - postgresql-client
+    - mysql-client
+    - redis-tools
+  
+  # Python packages for data science and analysis
+  python_packages:
+    # Data manipulation and analysis
+    - numpy
+    - pandas
+    - scipy
+    - statsmodels
+    - sympy
+    
+    # Visualization
+    - matplotlib
+    - seaborn
+    - plotly
+    - bokeh
+    - altair
+    
+    # Machine learning
+    - scikit-learn
+    - xgboost
+    - lightgbm
+    - catboost
+    
+    # Web and API
+    - requests
+    - httpx
+    - aiohttp
+    - fastapi
+    - flask
+    - django
+    
+    # Data formats
+    - json5
+    - pyyaml
+    - toml
+    - xmltodict
+    - lxml
+    - openpyxl
+    - xlrd
+    - h5py
+    
+    # Development and testing
+    - pytest
+    - unittest-xml-reporting
+    - coverage
+    - black
+    - flake8
+    - mypy
+    - bandit
+    - safety
+    
+    # Jupyter and notebooks
+    - jupyter
+    - notebook
+    - jupyterlab
+    - ipywidgets
+    - nbconvert
+    
+    # Database connectivity
+    - sqlalchemy
+    - psycopg2-binary
+    - pymongo
+    - redis
+    
+    # Async and concurrency
+    - asyncio
+    - aiofiles
+    - multiprocessing-logging
+    
+    # Utilities
+    - python-dateutil
+    - pytz
+    - click
+    - tqdm
+    - colorama
+    - tabulate
+    - rich
+    - typer
+  
+  # Node.js packages for JavaScript execution
+  npm_packages:
+    - "typescript"
+    - "ts-node"
+    - "@types/node"
+    - "lodash"
+    - "moment"
+    - "axios"
+    - "express"
+    - "jest"
+    - "mocha"
+    - "chai"
+    - "eslint"
+    - "prettier"
+    - "nodemon"
+    - "pm2"
+  
+  # Java packages via apt
+  java_packages:
+    - maven
+    - gradle
+    - ant
+  
+  # System services (minimal for security)
+  systemd_services:
+    - guest-agent
+  
+  # Performance optimizations for code execution
+  performance:
+    hugepages: false  # Disabled for small workloads
+    balloon: true
+    cpu_topology:
+      threads_per_core: 1
+      cores_per_die: 2
+      dies_per_socket: 1
+      sockets: 1
+  
+  # Enhanced security for untrusted code execution
+  security:
+    seccomp: true
+    iommu: true
+    # Strict firewall - only guest agent
+    firewall_rules:
+      - "ACCEPT tcp 8080"  # Guest agent
+      - "DROP all"
+    
+    # Resource limits to prevent abuse
+    resource_limits:
+      max_processes: 1024
+      max_open_files: 8192
+      max_memory_mb: 2048
+      max_cpu_time: 300  # 5 minutes
+      max_execution_time: 600  # 10 minutes
+    
+    # Code execution sandbox
+    execution_sandbox:
+      enabled: true
+      working_directory: "/tmp/code-execution"
+      allowed_directories:
+        - "/tmp"
+        - "/var/tmp"
+        - "/home/coderunner"
+      denied_directories:
+        - "/etc"
+        - "/boot"
+        - "/sys"
+        - "/proc"
+        - "/dev"
+      
+      # Network restrictions
+      network_access: "localhost_only"
+      max_network_connections: 10
+      
+      # File system restrictions
+      max_file_size_mb: 100
+      max_total_files: 1000
+      readonly_system: true
+  
+  # Environment variables for code execution
+  environment:
+    PYTHONPATH: "/opt/code-interpreter:/usr/local/lib/python3.11/site-packages"
+    NODE_PATH: "/usr/local/lib/node_modules"
+    JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-amd64"
+    GOPATH: "/home/coderunner/go"
+    RUST_LOG: "info"
+    # Security environment
+    TMPDIR: "/tmp/code-execution"
+    HOME: "/home/coderunner"
+  
+  # User configuration for code execution
+  users:
+    - name: "coderunner"
+      uid: 1001
+      gid: 1001
+      home: "/home/coderunner"
+      shell: "/bin/bash"
+      groups: []  # No special groups for security
+  
+  # Custom initialization scripts
+  init_scripts:
+    - "/opt/code-interpreter/scripts/setup-sandbox.sh"
+    - "/opt/code-interpreter/scripts/configure-limits.sh"
+    - "/opt/code-interpreter/scripts/setup-languages.sh"
+  
+  # Metadata for code interpreter identification
+  metadata:
+    template_version: "1.0.0"
+    created_for: "code-interpretation"
+    security_level: "high"
+    optimized_for:
+      - "python-execution"
+      - "javascript-execution"
+      - "multi-language-support"
+      - "data-analysis"
+      - "safe-code-execution"
+    supports:
+      - "python3.9"
+      - "python3.10"
+      - "python3.11"
+      - "python3.12"
+      - "nodejs"
+      - "java"
+      - "go"
+      - "rust"
+      - "c/c++"
+      - "jupyter-notebooks"
+    restrictions:
+      - "no-internet-access"
+      - "sandboxed-execution"
+      - "resource-limited"
+      - "time-limited"

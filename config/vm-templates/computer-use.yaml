@@ -1,0 +1,421 @@
+# Computer Use Template - Full desktop environment for visual AI agents
+# Maximum compatibility with desktop applications and GUI interactions
+
+computer_use:
+  # High resources for desktop workloads
+  vcpus: 6
+  memory_mb: 8192
+  
+  # Linux kernel and filesystem
+  kernel: "images/linux/vmlinux.bin"
+  rootfs: "images/linux/computer-use-rootfs.ext4"
+  
+  # Boot configuration with full desktop support
+  boot_args: "console=ttyS0 reboot=k panic=1 root=/dev/vda rw init=/sbin/init"
+  
+  # Guest agent for desktop automation
+  guest_agent:
+    enabled: true
+    port: 8080
+    auto_start: true
+    features:
+      - "desktop-automation"
+      - "screenshot-capture"
+      - "mouse-control"
+      - "keyboard-control"
+      - "window-management"
+  
+  # VNC server with high-quality desktop
+  vnc_server:
+    enabled: true
+    port: 5901
+    password: null
+    resolution: "1920x1080"
+    color_depth: 32
+    desktop_environment: "gnome"
+    performance_mode: "quality"  # vs "speed"
+  
+  # Full network access for application downloads
+  network:
+    enabled: true
+    bridge: "chbr0"
+    ip_allocation: "dhcp"
+    internet_access: true
+    port_forwarding:
+      - host_port: 8080  # Guest agent
+        guest_port: 8080
+      - host_port: 5901  # VNC
+        guest_port: 5901
+      - host_port: 3389  # RDP (if enabled)
+        guest_port: 3389
+      - host_port: 22    # SSH
+        guest_port: 22
+  
+  # Complete desktop environment packages
+  preinstalled_packages:
+    # Desktop environment (GNOME)
+    - ubuntu-desktop-minimal
+    - gnome-session
+    - gnome-shell
+    - gnome-terminal
+    - nautilus
+    - gedit
+    - gnome-control-center
+    - gnome-system-monitor
+    
+    # Alternative lightweight desktop
+    - xfce4
+    - xfce4-goodies
+    
+    # VNC and remote access
+    - x11vnc
+    - xvfb
+    - tightvncserver
+    - xrdp  # RDP server
+    
+    # Browsers
+    - firefox
+    - chromium-browser
+    - google-chrome-stable
+    
+    # Office and productivity
+    - libreoffice
+    - thunderbird
+    - evince  # PDF viewer
+    - eog     # Image viewer
+    - vlc     # Media player
+    
+    # Development tools
+    - code    # Visual Studio Code
+    - git
+    - python3.11
+    - python3.11-pip
+    - nodejs
+    - npm
+    - openjdk-17-jdk
+    
+    # Graphics and design
+    - gimp
+    - inkscape
+    - imagemagick
+    - blender
+    
+    # System tools
+    - htop
+    - neofetch
+    - tree
+    - curl
+    - wget
+    - vim
+    - nano
+    - tmux
+    - screen
+    
+    # Fonts and themes
+    - fonts-liberation
+    - fonts-dejavu
+    - fonts-noto
+    - fonts-roboto
+    - fonts-ubuntu
+    - papirus-icon-theme
+    - arc-theme
+    
+    # Multimedia
+    - ubuntu-restricted-extras
+    - ffmpeg
+    - audacity
+    - obs-studio
+    
+    # Communication
+    - discord
+    - telegram-desktop
+    - slack-desktop
+    - zoom
+    
+    # Gaming (for testing)
+    - steam
+    - lutris
+    
+    # Virtualization tools
+    - qemu-guest-agent
+    - spice-vdagent
+  
+  # Python packages for desktop automation
+  python_packages:
+    # GUI automation
+    - pyautogui
+    - pynput
+    - keyboard
+    - mouse
+    - pygetwindow
+    - PyQt5
+    - PyQt6
+    - tkinter
+    - kivymd
+    
+    # Image processing for screenshots
+    - pillow
+    - opencv-python
+    - numpy
+    - matplotlib
+    - scikit-image
+    
+    # OCR for text recognition
+    - pytesseract
+    - easyocr
+    - paddleocr
+    
+    # Desktop integration
+    - pynotify2
+    - plyer
+    - psutil
+    - screeninfo
+    
+    # Automation frameworks
+    - selenium
+    - playwright
+    - appium-python-client
+    
+    # API and web
+    - requests
+    - fastapi
+    - flask
+    - websockets
+    
+    # Development tools
+    - pytest
+    - black
+    - flake8
+    - jupyter
+    - ipython
+  
+  # Desktop automation tools
+  automation_tools:
+    # Linux automation
+    - xdotool
+    - wmctrl
+    - scrot
+    - import  # ImageMagick screenshot
+    - recordmydesktop
+    - kazam   # Screen recorder
+    
+    # Accessibility tools
+    - at-spi2-core
+    - python3-pyatspi
+    - accerciser  # Accessibility explorer
+  
+  # Window managers and desktop environments
+  desktop_environments:
+    primary: "gnome"
+    alternatives:
+      - "xfce4"
+      - "kde-plasma"
+      - "i3"
+      - "openbox"
+  
+  # Input method support for international text
+  input_methods:
+    - ibus
+    - ibus-gtk
+    - ibus-gtk3
+    - ibus-qt4
+    - ibus-pinyin
+    - ibus-anthy
+    - ibus-hangul
+  
+  # System services for desktop environment
+  systemd_services:
+    - guest-agent
+    - gdm3           # Display manager
+    - x11vnc
+    - xrdp
+    - ssh
+    - networkmanager
+    - bluetooth
+    - cups           # Printing
+    - avahi-daemon   # Network discovery
+  
+  # Performance optimizations for desktop
+  performance:
+    hugepages: false  # Can interfere with desktop apps
+    balloon: false
+    cpu_topology:
+      threads_per_core: 2  # Enable hyperthreading for desktop
+      cores_per_die: 3
+      dies_per_socket: 1
+      sockets: 1
+    
+    # Graphics optimizations
+    gpu_acceleration: true
+    opengl_acceleration: true
+    video_acceleration: true
+    
+    # Memory optimizations
+    vm_swappiness: 60  # Default for desktop
+    transparent_hugepages: "madvise"
+  
+  # Security settings (relaxed for desktop compatibility)
+  security:
+    seccomp: false
+    iommu: false
+    firewall_rules:
+      - "ACCEPT tcp 22"    # SSH
+      - "ACCEPT tcp 8080"  # Guest agent
+      - "ACCEPT tcp 5901"  # VNC
+      - "ACCEPT tcp 3389"  # RDP
+      - "ACCEPT tcp 80"    # HTTP
+      - "ACCEPT tcp 443"   # HTTPS
+      - "ACCEPT tcp 53"    # DNS
+      - "ACCEPT udp 53"    # DNS
+      - "ACCEPT tcp 631"   # CUPS printing
+      - "ACCEPT tcp 5353"  # mDNS
+      - "ACCEPT udp 5353"  # mDNS
+      - "DROP all"
+  
+  # Environment variables for desktop use
+  environment:
+    # Display configuration
+    DISPLAY: ":0"
+    WAYLAND_DISPLAY: "wayland-0"
+    XDG_SESSION_TYPE: "x11"
+    XDG_DESKTOP: "GNOME"
+    DESKTOP_SESSION: "gnome"
+    
+    # Desktop directories
+    XDG_DESKTOP_DIR: "/home/user/Desktop"
+    XDG_DOWNLOAD_DIR: "/home/user/Downloads"
+    XDG_TEMPLATES_DIR: "/home/user/Templates"
+    XDG_PUBLICSHARE_DIR: "/home/user/Public"
+    XDG_DOCUMENTS_DIR: "/home/user/Documents"
+    XDG_MUSIC_DIR: "/home/user/Music"
+    XDG_PICTURES_DIR: "/home/user/Pictures"
+    XDG_VIDEOS_DIR: "/home/user/Videos"
+    
+    # Application paths
+    PYTHONPATH: "/opt/computer-use:/usr/local/lib/python3.11/site-packages"
+    NODE_PATH: "/usr/local/lib/node_modules"
+    
+    # Browser configuration
+    CHROME_BIN: "/usr/bin/google-chrome"
+    FIREFOX_BIN: "/usr/bin/firefox"
+    
+    # Development environment
+    EDITOR: "code"
+    VISUAL: "code"
+    BROWSER: "firefox"
+    
+    # Accessibility
+    GTK_MODULES: "gail:atk-bridge"
+    QT_ACCESSIBILITY: "1"
+    GNOME_ACCESSIBILITY: "1"
+  
+  # User configuration
+  users:
+    - name: "user"
+      uid: 1000
+      gid: 1000
+      home: "/home/user"
+      shell: "/bin/bash"
+      groups:
+        - "sudo"
+        - "audio"
+        - "video"
+        - "input"
+        - "dialout"
+        - "plugdev"
+      
+      # Desktop directories
+      directories:
+        - "/home/user/Desktop"
+        - "/home/user/Documents"
+        - "/home/user/Downloads"
+        - "/home/user/Pictures"
+        - "/home/user/Videos"
+        - "/home/user/Music"
+        - "/home/user/Templates"
+        - "/home/user/Public"
+        - "/home/user/Scripts"
+        - "/home/user/.config"
+        - "/home/user/.local/share"
+  
+  # Custom initialization scripts
+  init_scripts:
+    - "/opt/computer-use/scripts/setup-desktop.sh"
+    - "/opt/computer-use/scripts/configure-vnc.sh"
+    - "/opt/computer-use/scripts/setup-automation-tools.sh"
+    - "/opt/computer-use/scripts/configure-accessibility.sh"
+    - "/opt/computer-use/scripts/install-additional-apps.sh"
+  
+  # Application shortcuts and launchers
+  desktop_shortcuts:
+    - name: "Terminal"
+      command: "gnome-terminal"
+      icon: "utilities-terminal"
+    
+    - name: "Firefox"
+      command: "firefox"
+      icon: "firefox"
+    
+    - name: "VS Code"
+      command: "code"
+      icon: "code"
+    
+    - name: "File Manager"
+      command: "nautilus"
+      icon: "folder"
+    
+    - name: "LibreOffice Writer"
+      command: "libreoffice --writer"
+      icon: "libreoffice-writer"
+  
+  # Screen recording and automation configuration
+  automation_config:
+    screenshot_format: "png"
+    screenshot_quality: 95
+    video_format: "mp4"
+    video_quality: "high"
+    mouse_tracking: true
+    keyboard_logging: true
+    window_tracking: true
+    accessibility_tree: true
+  
+  # Metadata for computer use identification
+  metadata:
+    template_version: "1.0.0"
+    created_for: "computer-use-automation"
+    optimized_for:
+      - "desktop-automation"
+      - "gui-interaction"
+      - "visual-ai-agents"
+      - "application-testing"
+      - "user-simulation"
+    supports:
+      - "gnome-desktop"
+      - "vnc-access"
+      - "rdp-access"
+      - "mouse-automation"
+      - "keyboard-automation"
+      - "screenshot-capture"
+      - "video-recording"
+      - "ocr-text-recognition"
+      - "accessibility-tree"
+      - "window-management"
+    features:
+      - "full-desktop-environment"
+      - "office-suite"
+      - "web-browsers"
+      - "development-tools"
+      - "graphics-applications"
+      - "multimedia-support"
+      - "game-compatibility"
+      - "printer-support"
+    applications:
+      - "firefox"
+      - "chrome"
+      - "vscode"
+      - "libreoffice"
+      - "gimp"
+      - "blender"
+      - "obs-studio"
+      - "discord"
+      - "telegram"

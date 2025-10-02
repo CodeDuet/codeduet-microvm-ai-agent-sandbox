@@ -14,3 +14,28 @@ asyncpg>=0.29.0
 redis>=5.0.0
 kubernetes>=28.1.0
 PyJWT>=2.8.0
+
+# Phase 5: AI Agent Integration dependencies
+# MCP (Model Context Protocol) support
+mcp>=1.0.0
+
+# OpenAI integration for Codex
+openai>=1.0.0
+
+# Additional AI framework dependencies
+langchain>=0.0.300
+langchain-openai>=0.0.5
+autogen-agentchat>=0.2.0
+
+# Computer use and automation
+pyautogui>=0.9.54
+pynput>=1.7.6
+pillow>=10.0.0
+opencv-python>=4.8.0
+
+# Web automation (for web-automation template)
+selenium>=4.15.0
+playwright>=1.40.0
+
+# Desktop automation
+xdotool>=0.1.0  # Linux only

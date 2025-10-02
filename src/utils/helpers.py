@@ -1,5 +1,7 @@
 import asyncio
 import aiofiles
+import secrets
+import string
 from pathlib import Path
 from typing import Optional, Dict, Any
 import uuid
@@ -13,6 +15,13 @@ def generate_vm_id() -> str:
 
 def generate_request_id() -> str:
     return str(uuid.uuid4())
+
+
+def generate_password(length: int = 12) -> str:
+    """Generate a secure random password."""
+    alphabet = string.ascii_letters + string.digits
+    password = ''.join(secrets.choice(alphabet) for _ in range(length))
+    return password
 
 
 async def ensure_directory(path: Path) -> None:
@@ -64,19 +73,36 @@ def sanitize_vm_name(name: str) -> str:
     return sanitized[:64]
 
 
-async def run_subprocess(cmd: list, timeout: Optional[int] = None) -> tuple[int, str, str]:
-    process = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
+async def run_subprocess(cmd: list, timeout: Optional[int] = None, input: Optional[bytes] = None, capture_output: bool = True):
+    """Run subprocess with optional input and capture settings."""
+    if capture_output:
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE if input else None
+        )
+    else:
+        process = await asyncio.create_subprocess_exec(*cmd)
     
     try:
         stdout, stderr = await asyncio.wait_for(
-            process.communicate(), 
+            process.communicate(input=input), 
             timeout=timeout
         )
-        return process.returncode, stdout.decode(), stderr.decode()
+        
+        if capture_output:
+            # Return object with returncode, stdout, stderr attributes
+            class SubprocessResult:
+                def __init__(self, returncode, stdout, stderr):
+                    self.returncode = returncode
+                    self.stdout = stdout.decode() if stdout else ""
+                    self.stderr = stderr.decode() if stderr else ""
+            
+            return SubprocessResult(process.returncode, stdout, stderr)
+        else:
+            return process.returncode
+            
     except asyncio.TimeoutError:
         process.kill()
         await process.wait()
