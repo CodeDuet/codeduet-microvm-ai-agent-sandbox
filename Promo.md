@@ -13,6 +13,7 @@ Transform your AI development with the most advanced, secure, and feature-rich A
 **Host complex multi-agent conversations with enterprise security**
 
 - **Safe Multi-Agent Execution**: Multiple AI agents collaborate in isolated MicroVM environments
+- **Conversation Persistence**: Snapshot and restore entire multi-agent conversation states
 - **Resource Isolation**: Each agent operates in its own secure sandbox with hardware-level isolation
 - **Enterprise Integration**: Full JWT authentication, RBAC, and audit logging for all agent activities
 
